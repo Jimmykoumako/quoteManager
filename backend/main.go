@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -11,25 +12,20 @@ import (
 
 func main() {
 	// Initialize the database
-	db, err := database.InitDB()
-	if err != nil {
-		log.Fatalf("Error initializing database: %v", err)
-	}
+	database.InitDB()
 
 	// Defer the database closing function
 	defer func() {
-		if err := database.CloseDB(db); err != nil {
-			log.Printf("Error closing database: %v", err)
-		}
+		database.CloseDB()
 	}()
 
-	// Initialize your router and set up routes
+	// Initialize your router and set up routes with middleware
 	router := routes.SetupRouter()
 
 	// Set up server configuration
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // default port
+		port = "8000" // default port
 	}
 
 	// Start the server
@@ -39,5 +35,3 @@ func main() {
 		log.Fatalf("Server error: %v", err)
 	}
 }
-
-  

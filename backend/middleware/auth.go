@@ -2,7 +2,6 @@
 package middleware
 
 import (
-	"api/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,10 +24,4 @@ func AuthMiddleware() gin.HandlerFunc {
     }
 }
 
-// Example function to check authentication status
-func isAuthenticated(c *gin.Context) bool {
-    // Check if the user is authenticated (e.g., verify token or session)
-    // Return true if authenticated, false otherwise
-    // Implement your own authentication logic
-    return true
-}
+

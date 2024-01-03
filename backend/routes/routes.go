@@ -1,8 +1,11 @@
+// File: routes/routes.go
+
 package routes
 
 import (
 	"github.com/gin-gonic/gin"
 	"api/controllers"
+	"api/middleware"
 )
 
 func SetupRouter() *gin.Engine {
@@ -11,19 +14,19 @@ func SetupRouter() *gin.Engine {
 	// Quotes endpoints
 	quoteGroup := r.Group("/api/quotes")
 	quoteGroup.Use(middleware.AuthMiddleware())
-    {
-        quoteRoutes.GET("/", controllers.GetQuotes)
-        quoteRoutes.GET("/:id", controllers.GetQuoteByID)
-        quoteRoutes.POST("/", controllers.AddQuote)
-        quoteRoutes.PUT("/:id", controllers.UpdateQuote)
-        quoteRoutes.DELETE("/:id", controllers.DeleteQuote)
-    }
-	
+	{
+		quoteGroup.GET("/", controllers.GetQuotes)
+		quoteGroup.GET("/:id", controllers.GetQuoteByID)
+		quoteGroup.POST("/", controllers.AddQuote)
+		quoteGroup.PUT("/:id", controllers.UpdateQuote)
+		quoteGroup.DELETE("/:id", controllers.DeleteQuote)
+	}
+
 	// User routes
 	userGroup := r.Group("/api/users")
 	{
 		userGroup.POST("/register", controllers.RegisterUser)
-		userGroup.POST("/login", controllers.LoginUser)
+		userGroup.POST("/login", middleware.AuthMiddleware(), controllers.LoginUser) // Add middleware here
 		userGroup.GET("/:id", controllers.GetUserByID)
 		userGroup.PUT("/:id", controllers.UpdateUser)
 		userGroup.DELETE("/:id", controllers.DeleteUser)

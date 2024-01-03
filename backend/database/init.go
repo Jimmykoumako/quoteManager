@@ -1,32 +1,35 @@
 package database
 
 import (
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"api/models"
+    "fmt"
+    "gorm.io/driver/postgres"
+    "gorm.io/gorm"
+    "os"
+    "api/models"
 )
 
 var db *gorm.DB
 
 // InitDB initializes the database connection
 func InitDB() {
-	database, err := gorm.Open(postgres.Open("user=username dbname=mydatabase sslmode=disable"), &gorm.Config{})
-	if err != nil {
-		panic("Failed to connect to the database")
-	}
+    connectionString := os.Getenv("DATABASE_URL")
+    db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
+    if err != nil {
+        panic("Failed to connect to PostgreSQL")
+    }
 
-	db = database
+	fmt.Println("Connected to PostgreSQL...")
 
-	// Auto-migrate the schema
-	db.AutoMigrate(&models.Quote{}, &models.Feedback{}, &models.User{}, &models.Category{}, &models.Tag{}, &models.Like{}, &models.LiteraryWork{}, &models.Folder{})
+    // Auto-migrate the schema
+	db.AutoMigrate(&models.Like{}, &models.Folder{}, &models.LiteraryWork{}, &models.Feedback{}, &models.Quote{}, &models.Tag{}, &models.Category{}, &models.User{})
 }
 
 // CloseDB closes the database connection
 func CloseDB() {
-	sqlDB, err := db.DB()
-	if err != nil {
-		panic("Failed to get database connection")
-	}
+    sqlDB, err := db.DB()
+    if err != nil {
+        panic("Failed to get database connection")
+    }
 
-	sqlDB.Close()
+    sqlDB.Close()
 }

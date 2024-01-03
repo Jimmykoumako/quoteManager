@@ -7,7 +7,7 @@ type LiteraryWork struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Title     string    `json:"title" gorm:"not null"`
 	Author    string    `json:"author"`
-	Quotes    []Quote   `json:"quotes"`
+	Quotes    []Quote   `json:"quotes" gorm:"foreignKey:WorkID"`
 	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
 }

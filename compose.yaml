@@ -19,10 +19,15 @@ services:
       dockerfile: go.dockerfile
     environment:
       DATABASE_URL: 'postgres://postgres:postgres@ladb:5432/qmdb?sslmode=disable'
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: qmdb
     ports:
       - '8000:8000'
     depends_on:
       - db
+    networks:
+      - default
   db:
     container_name: ladb
     image: postgres:13
@@ -34,6 +39,12 @@ services:
       - 5432:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - default
 
 volumes:
   pgdata: {}
+
+networks:
+  default:
+    driver: bridge

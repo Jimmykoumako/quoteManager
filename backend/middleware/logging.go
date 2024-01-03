@@ -7,6 +7,22 @@ import (
 	"log"
 )
 
+// getUsernameFromContext retrieves the username from the Gin context
+func getUsernameFromContext(c *gin.Context) string {
+	// Assuming the username is stored in the Gin context under the key "username"
+	username, exists := c.Get("username")
+	if !exists {
+		return ""
+	}
+
+	// Convert to string if it's of the expected type
+	if usernameStr, ok := username.(string); ok {
+		return usernameStr
+	}
+
+	return ""
+}
+
 // LogFeedbackAction logs information about feedback-related actions
 func LogFeedbackAction() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -21,3 +37,5 @@ func LogFeedbackAction() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+
