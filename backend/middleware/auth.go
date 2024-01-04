@@ -1,27 +1,22 @@
-// middleware/auth.go
+// middleware/authentication.go
 package middleware
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+    "github.com/gin-gonic/gin"
+    "net/http"
+    "api/utils"
 )
 
-// AuthMiddleware checks if the request is authenticated
+// AuthMiddleware is a middleware to authenticate users using JWT
 func AuthMiddleware() gin.HandlerFunc {
     return func(c *gin.Context) {
-        // Check authentication logic here
-        // For example, verify an authentication token or session
-
-        // If authentication is successful, proceed to the next middleware or handler
-        // Otherwise, return an unauthorized response
-        if isAuthenticated(c) {
-            c.Next()
-        } else {
+        token, err := c.Cookie("jwt")
+        if err != nil || !utils.VerifyJWT(token) {
             c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
             c.Abort()
+            return
         }
+
+        c.Next()
     }
 }
-
-

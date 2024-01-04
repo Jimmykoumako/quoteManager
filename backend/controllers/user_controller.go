@@ -2,15 +2,17 @@ package controllers
 
 import (
 	"api/models"
+    "api/database"
+    "api/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"fmt"
 )
 
 // AuthenticateUser authenticates a user based on login credentials
-func AuthenticateUser(input models.LoginInput) (models.User, error) {
+func AuthenticateUser(input database.LoginInput) (models.User, error) {
 	// Retrieve user from the database by username
-	foundUser, err := models.GetUserByUsername(input.Username)
+	foundUser, err := database.GetUserByUsername(input.Username)
 	if err != nil {
 		// Handle the case where the user is not found
 		return models.User{}, err
@@ -27,7 +29,8 @@ func AuthenticateUser(input models.LoginInput) (models.User, error) {
 
 // RegisterUser registers a new user
 func RegisterUser(c *gin.Context) {
-	var userInput models.UserInput
+    fmt.Println("Welcome to controller.RegisterUser")
+	var userInput database.UserInput
 
 	// Bind the JSON request body to the UserInput struct
 	if err := c.ShouldBindJSON(&userInput); err != nil {
@@ -36,19 +39,20 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	// Implement logic to validate and register the new user in the database
-	newUser, err := models.RegisterUser(userInput)
+	newUser, err := database.RegisterUser(userInput)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to register user"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, newUser)
+    fmt.Println("Bye from controller.RegisterUser")
 }
 
 
-// LoginUser authenticates a user
+// LoginUser authenticates a user and generates a JWT
 func LoginUser(c *gin.Context) {
-	var loginInput models.LoginInput
+	var loginInput database.LoginInput
 
 	// Bind the JSON request body to the LoginInput struct
 	if err := c.ShouldBindJSON(&loginInput); err != nil {
@@ -57,14 +61,26 @@ func LoginUser(c *gin.Context) {
 	}
 
 	// Implement logic to authenticate the user based on the login credentials
-	authUser, err := models.AuthenticateUser(loginInput)
+	authUser, err := database.AuthenticateUser(loginInput)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 		return
 	}
 
-	c.JSON(http.StatusOK, authUser)
+	// Generate JWT
+	token, err := utils.GenerateJWT(authUser.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	// Set the JWT as a cookie
+	c.SetCookie("jwt", token, 3600, "/", "", false, true)
+
+	// Respond with other data or a success message
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
 }
+
 
 
 // UpdateUser updates an existing user by ID
@@ -93,7 +109,7 @@ func UpdateUser(c *gin.Context) {
     }
 
     // Example using Gorm
-    result, err := models.UpdateUser(userID, updatedUser)
+    result, err := database.UpdateUser(userID, updatedUser)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err})
         return
@@ -129,7 +145,7 @@ func DeleteUser(c *gin.Context) {
     userID := c.Param("id")
 
 
-    err := models.DeleteUser(userID)
+    err := database.DeleteUser(userID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -147,7 +163,7 @@ func GetUserQuotes(c *gin.Context) {
 
 	// Implement logic to fetch quotes for the specified user from the database
 	// Example using Gorm
-	quotes, err := models.GetQuotesByUserID(userID)
+	quotes, err := database.GetQuotesByUserID(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -163,7 +179,7 @@ func GetUserFolders(c *gin.Context) {
 
 	// Implement logic to fetch folders for the specified user from the database
 	// Example using Gorm
-	folders, err := models.GetFoldersByUserID(userID)
+	folders, err := database.GetFoldersByUserID(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -177,7 +193,7 @@ func GetUserFolders(c *gin.Context) {
 func GetQuotesByUserID(c *gin.Context) {
     userID := c.Param("id")
 
-    quotes, err := models.GetQuotesByUserID(userID)
+    quotes, err := database.GetQuotesByUserID(userID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -190,7 +206,7 @@ func GetQuotesByUserID(c *gin.Context) {
 func GetFoldersByUserID(c *gin.Context) {
     userID := c.Param("id")
 
-    folders, err := models.GetFoldersByUserID(userID)
+    folders, err := database.GetFoldersByUserID(userID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -205,7 +221,7 @@ func GetUserByID(c *gin.Context) {
     userID := c.Param("id")
 
     //var user models.User
-    result, err := models.GetUserByID(userID)
+    result, err := database.GetUserByID(userID)
     if err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
         return
