@@ -41,6 +41,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get install jq
       
+      # Run API Tests for Feedback
       - name: Run API Tests
         run: |
           # Register a new user
@@ -72,3 +73,39 @@ jobs:
 
           # Delete the updated feedback (authenticated)
           curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/1
+
+      # Run API Tests for Feedback
+      - name: Run API Tests for Feedback
+        run: |
+          # Get a list of feedback entries (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback
+
+          # Get a specific feedback by ID (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/1
+
+          # Add new feedback for a quote (authenticated)
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"comment": "Great quote!", "rating": 5}' http://localhost:8000/api/feedback/1
+
+          # Update existing feedback by ID (authenticated)
+          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"comment": "Updated comment", "rating": 4}' http://localhost:8000/api/feedback/1
+
+          # Delete existing feedback by ID (authenticated)
+          curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/1
+
+      # Run API Tests for Folders
+      - name: Run API Tests for Folders
+        run: |
+          # Get a list of folders (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/folders
+
+          # Get a specific folder by ID (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/folders/1
+
+          # Add a new folder (authenticated)
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"name": "MyFolder"}' http://localhost:8000/api/folders
+
+          # Update an existing folder by ID (authenticated)
+          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"name": "UpdatedFolder"}' http://localhost:8000/api/folders/1
+
+          # Delete an existing folder by ID (authenticated)
+          curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/folders/1

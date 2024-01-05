@@ -85,6 +85,17 @@ func SetupRouter() *gin.Engine {
 			// Add other feedback-related routes as needed
 		}
 
+		// Folder endpoints
+		folderGroup := protectedGroup.Group("/folders")
+		{
+			folderGroup.GET("/:id", controllers.GetFolderByID)
+			folderGroup.GET("/", controllers.GetAllFolders)
+			folderGroup.POST("/", controllers.CreateFolder)
+			folderGroup.PUT("/:id", controllers.UpdateFolder)
+			folderGroup.DELETE("/:id", controllers.DeleteFolder)
+			// Add other folder-related routes as needed
+		}
+
 		// Other protected endpoints go here...
 	}
 
