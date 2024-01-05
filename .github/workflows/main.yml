@@ -21,7 +21,7 @@ jobs:
           POSTGRES_DB: qmdb
 
       goapp:
-        image: goapp:1.0.0
+        image: gedeonkoumako/goapp:1.0.0
         ports:
           - 8000:8000
         options: --name=goapp
