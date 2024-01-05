@@ -64,3 +64,11 @@ jobs:
           # Delete the updated quote (authenticated)
           curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/quotes/1
 
+          # Add new feedback (authenticated)
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"rating": 5, "comment": "Great feedback"}' http://localhost:8000/api/feedback
+
+          # Update the newly added feedback (authenticated)
+          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"rating": 4, "comment": "Updated feedback"}' http://localhost:8000/api/feedback/1
+
+          # Delete the updated feedback (authenticated)
+          curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/1
