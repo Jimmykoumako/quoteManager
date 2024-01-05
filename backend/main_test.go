@@ -6,7 +6,7 @@ import (
     "net/http/httptest"
     "testing"
     "github.com/gin-gonic/gin"
-    "your-app/controllers"
+    "api/controllers"
 )
 
 func setupRouter() *gin.Engine {

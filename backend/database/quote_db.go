@@ -31,10 +31,26 @@ func GetQuoteByID(quoteID uint) (models.Quote, error) {
 }
 
 // AddQuote adds a new quote to the database
+// AddQuote adds a new quote to the database
 func AddQuote(newQuote models.Quote) (models.Quote, error) {
 	// Validate required fields
 	if newQuote.Text == "" || newQuote.Author == "" {
 		return models.Quote{}, ErrInvalidPayload
+	}
+
+	// Set default values for optional fields
+	if newQuote.Category == "" {
+		newQuote.Category = "Default Category"
+	}
+
+	// Set default value for Tags if not provided
+	if len(newQuote.Tags) == 0 {
+		newQuote.Tags = []string{"Default Tag"}
+	}
+
+	// Set default values for optional fields
+	if newQuote.WorkID  != 1 {
+		newQuote.WorkID  = 1
 	}
 
 	// Add the new quote to the database
@@ -44,6 +60,7 @@ func AddQuote(newQuote models.Quote) (models.Quote, error) {
 
 	return newQuote, nil
 }
+
 
 // UpdateQuote updates an existing quote by ID in the database
 func UpdateQuote(quoteID uint, updatedQuote models.Quote) (models.Quote, error) {

@@ -17,13 +17,12 @@ func InitDB() {
     if err != nil {
         panic("Failed to connect to PostgreSQL")
     }
-    db  = dbi
+    db = dbi
 
-	fmt.Println("Connected to PostgreSQL...")
+    fmt.Println("Connected to PostgreSQL...")
 
     // Auto-migrate the schema
-	db.AutoMigrate(&models.Like{}, &models.Folder{}, &models.LiteraryWork{}, &models.Feedback{}, &models.Tag{}, &models.Category{}, &models.User{}, &models.Quote{})
-
+    db.AutoMigrate(&models.Like{}, &models.Folder{}, &models.LiteraryWork{}, &models.Feedback{}, &models.Tag{}, &models.Category{}, &models.User{}, &models.Quote{})
 }
 
 // CloseDB closes the database connection
@@ -35,3 +34,9 @@ func CloseDB() {
 
     sqlDB.Close()
 }
+
+// GetDB returns the reference to the database instance
+func GetDB() *gorm.DB {
+    return db
+}
+

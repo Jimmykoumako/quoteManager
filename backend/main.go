@@ -19,6 +19,11 @@ func main() {
 		database.CloseDB()
 	}()
 
+	// // Seed data
+	// if err := database.SeedDatabase(); err != nil {
+	// 	log.Fatalf("Error seeding data: %v", err)
+	// }
+
 	// Initialize your router and set up routes with middleware
 	router := routes.SetupRouter()
 
