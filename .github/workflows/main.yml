@@ -112,4 +112,4 @@ jobs:
           curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/folders/1
 
       - name: Run tests
-        run: go test ./routes/
+        run: sudo docker exec goapp  go test ./routes/
