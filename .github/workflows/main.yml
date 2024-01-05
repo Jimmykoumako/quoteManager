@@ -14,7 +14,7 @@ jobs:
         image: goapp:1.0.0
         ports:
           - 8000:8000
-        options: --name=goapp-container
+        options: --name=goapp
         env:
           DATABASE_URL: postgres://postgres:postgres@ladb:5432/qmdb?sslmode=disable
           POSTGRES_USER: postgres
@@ -25,6 +25,7 @@ jobs:
         image: postgres:13
         ports:
           - 5432:5432
+        options: --name=ladb
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
