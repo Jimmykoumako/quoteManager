@@ -13,7 +13,7 @@ services:
       - goapp
   goapp:
     container_name: goapp
-    image: goapp:1.0.0
+    image: gedeonkoumako/goapp:1.0.0
     build:
       context: ./backend
       dockerfile: go.dockerfile
