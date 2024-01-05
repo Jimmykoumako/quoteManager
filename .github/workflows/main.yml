@@ -64,9 +64,3 @@ jobs:
           # Delete the updated quote (authenticated)
           curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/quotes/1
 
-  cleanup:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Clean up Docker containers
-        run: sudo docker compose -f compose.yaml down
