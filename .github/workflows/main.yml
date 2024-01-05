@@ -10,6 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+      db:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        options: --name=ladb
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qmdb
+
       goapp:
         image: goapp:1.0.0
         ports:
@@ -17,16 +27,6 @@ jobs:
         options: --name=goapp
         env:
           DATABASE_URL: postgres://postgres:postgres@ladb:5432/qmdb?sslmode=disable
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: qmdb
-
-      db:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        options: --name=ladb
-        env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: qmdb
