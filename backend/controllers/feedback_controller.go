@@ -6,7 +6,8 @@ import (
 	"api/models"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"math/rand"
+	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -16,10 +17,8 @@ var feedbackStorage = make(map[string]models.Feedback)
 
 // GetFeedbackByID returns a specific feedback by ID
 func GetFeedbackByID(c *gin.Context) {
-	// Extract feedback ID from the URL parameter
 	feedbackID := c.Param("id")
 
-	// Fetch feedback from the in-memory storage
 	feedback, found := feedbackStorage[feedbackID]
 	if !found {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Feedback not found"})
@@ -31,7 +30,6 @@ func GetFeedbackByID(c *gin.Context) {
 
 // GetAllFeedback returns all feedback entries
 func GetAllFeedback(c *gin.Context) {
-	// Convert feedback map to a slice
 	var feedbackList []models.Feedback
 	for _, v := range feedbackStorage {
 		feedbackList = append(feedbackList, v)
@@ -42,70 +40,113 @@ func GetAllFeedback(c *gin.Context) {
 
 // AddFeedbackForQuote adds feedback for a specific quote
 func AddFeedbackForQuote(c *gin.Context) {
-	// Extract quote ID from the URL parameter
 	quoteID := c.Param("quoteId")
-
-	// Implement logic to add feedback for a quote to the in-memory storage
 	var feedback models.Feedback
 
-	// Bind the request body to the feedback model
 	if err := c.ShouldBindJSON(&feedback); err != nil {
+		log.Printf("Error binding JSON: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Validate feedback data
-	if feedback.Rating < 1 || feedback.Rating > 5 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid rating. Rating must be between 1 and 5."})
+	if err := validateFeedback(feedback); err != nil {
+		log.Printf("Invalid feedback: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if len(feedback.Comment) > 500 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment is too long. Maximum length is 500 characters."})
-		return
-	}
-
-	if feedback.Comment == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment cannot be empty."})
-		return
-	}
-
-	// Set the QuoteID based on the parameter
-	// Convert string to uint
-	quoteIDUint, err := strconv.ParseUint(quoteID, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quote ID."})
-		return
-	}
-	feedback.QuoteID = uint(quoteIDUint)
-
-	// Save feedback to the in-memory storage
+	feedback.QuoteID = parseQuoteID(quoteID)
 	feedbackID := generateFeedbackID()
-	feedbackStorage[feedbackID] = feedback
-
-	// Parse feedbackID to uint and assign it to feedback.ID
 	parsedID, err := strconv.ParseUint(feedbackID, 10, 64)
 	if err != nil {
-		fmt.Println("Error:", err)
+		log.Printf("Error parsing feedback ID: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 	feedback.ID = uint(parsedID)
+	feedbackStorage[feedbackID] = feedback
+
+	log.Printf("Feedback added successfully. ID: %d, QuoteID: %d", feedback.ID, feedback.QuoteID)
 
 	c.JSON(http.StatusCreated, feedback)
 }
 
-// generateFeedbackID generates a unique ID for feedback (for demonstration purposes)
-func generateFeedbackID() string {
-	// In a real-world scenario, you would use a more sophisticated method to generate unique IDs
-	return "fb" + randomString(6)
+// UpdateFeedback updates a specific feedback
+func UpdateFeedback(c *gin.Context) {
+	feedbackID := c.Param("id")
+	var updatedFeedback models.Feedback
+
+	if err := c.ShouldBindJSON(&updatedFeedback); err != nil {
+		log.Printf("Error binding JSON: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, found := feedbackStorage[feedbackID]
+	if !found {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Feedback not found"})
+		return
+	}
+
+	feedbackStorage[feedbackID] = updatedFeedback
+
+	log.Printf("Feedback updated successfully. ID: %s", feedbackID)
+
+	c.JSON(http.StatusOK, updatedFeedback)
 }
 
-// randomString generates a random string of a specified length (for demonstration purposes)
-func randomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	result := make([]byte, length)
-	for i := range result {
-		result[i] = charset[rand.Intn(len(charset))]
+// DeleteFeedback deletes a specific feedback by ID
+func DeleteFeedback(c *gin.Context) {
+	feedbackID := c.Param("id")
+
+	_, found := feedbackStorage[feedbackID]
+	if !found {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Feedback not found"})
+		return
 	}
-	return string(result)
+
+	delete(feedbackStorage, feedbackID)
+
+	log.Printf("Feedback deleted successfully. ID: %s", feedbackID)
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+// generateFeedbackID generates a unique ID for feedback (for demonstration purposes)
+func generateFeedbackID() string {
+	// Generate a new UUID
+	uuid := uuid.New()
+
+	// Convert UUID to string and return
+	return uuid.String()
+}
+
+func validateFeedback(feedback models.Feedback) error {
+	// Validate rating
+	if feedback.Rating < 1 || feedback.Rating > 5 {
+		return fmt.Errorf("invalid rating. Rating must be between 1 and 5")
+	}
+
+	// Validate comment length
+	const maxCommentLength = 200
+	if len(feedback.Comment) > maxCommentLength {
+		return fmt.Errorf("comment is too long. Maximum length is %d characters", maxCommentLength)
+	}
+
+	// Validate non-empty comment
+	if feedback.Comment == "" {
+		return fmt.Errorf("comment cannot be empty")
+	}
+
+	// Add more validation rules as needed...
+
+	return nil
+}
+
+func parseQuoteID(quoteID string) uint {
+	parsedID, err := strconv.ParseUint(quoteID, 10, 64)
+	if err != nil {
+		fmt.Println("Error parsing quote ID:", err)
+	}
+	return uint(parsedID)
 }
