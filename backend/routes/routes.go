@@ -82,6 +82,8 @@ func SetupRouter() *gin.Engine {
 			feedbackGroup.GET("/:id", controllers.GetFeedbackByID)
 			feedbackGroup.GET("/", controllers.GetAllFeedback)
 			feedbackGroup.POST("/:quoteId", controllers.AddFeedbackForQuote)
+			feedbackGroup.PUT("/:id", controllers.UpdateFeedback)
+			feedbackGroup.DELETE("/:id", controllers.DeleteFeedback)
 			// Add other feedback-related routes as needed
 		}
 
