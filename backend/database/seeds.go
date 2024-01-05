@@ -1,8 +1,8 @@
 package database
 
 import (
-	"errors"
 	"api/models"
+	"errors"
 	"github.com/lib/pq"
 )
 
@@ -94,7 +94,7 @@ func SeedDatabase() error {
 		{Text: "It does not matter how slowly you go as long as you do not stop.", Author: "Confucius", Category: "Motivation", UserID: 2, WorkID: 8},
 		{Text: "The only way to do great work is to love what you do.", Author: "Steve Jobs", Category: "Technology", UserID: 3, WorkID: 9},
 		{Text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", Author: "Winston Churchill", Category: "Motivation", UserID: 4, WorkID: 10},
-		
+
 		// Add more quotes as needed
 	}
 
@@ -107,7 +107,7 @@ func SeedDatabase() error {
 		{UserID: 5, QuoteID: 34, IsLike: true},
 		// Add more likes as needed
 	}
-	
+
 	// Feedbacks
 	feedbacks := []models.Feedback{
 		{Comment: "Great quote!", Rating: 5, QuoteID: 1},
@@ -117,7 +117,7 @@ func SeedDatabase() error {
 		// Add more feedbacks as needed
 	}
 	// Create records in the database
-	
+
 	if err := createWithSkipDuplicates(&categories); err != nil {
 		return err
 	}
@@ -129,11 +129,11 @@ func SeedDatabase() error {
 	if err := createWithSkipDuplicates(&folders); err != nil {
 		return err
 	}
-	
+
 	if err := createWithSkipDuplicates(&literaryWorks); err != nil {
 		return err
 	}
-	
+
 	if err := createWithSkipDuplicates(&quotes); err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func SeedDatabase() error {
 	if err := createWithSkipDuplicates(&likes); err != nil {
 		return err
 	}
-	
+
 	if err := createWithSkipDuplicates(&feedbacks); err != nil {
 		return err
 	}
@@ -169,4 +169,3 @@ func isDuplicateKeyError(err error) bool {
 	}
 	return false
 }
-

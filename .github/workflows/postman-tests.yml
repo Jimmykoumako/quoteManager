@@ -1,4 +1,4 @@
-name: API Tests
+name: Go Application Tests
 
 on:
   push:
@@ -6,31 +6,63 @@ on:
       - main
 
 jobs:
-  run_api_tests:
+  test:
     runs-on: ubuntu-latest
 
+    services:
+      goapp:
+        image: goapp:1.0.0
+        ports:
+          - 8000:8000
+        options: --name=goapp-container
+        env:
+          DATABASE_URL: postgres://postgres:postgres@ladb:5432/qmdb?sslmode=disable
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qmdb
+
+      db:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qmdb
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Run API Tests
-      run: |
-        # Replace the following with your actual API test commands
-        REGISTER_RESPONSE=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/register)
+      - name: Wait for Services to Start
+        run: sleep 30
 
-        # Extract the JWT token from the registration response
-        JWT_TOKEN=$(echo $REGISTER_RESPONSE | jq -r '.token')
+      - name: Run API Tests
+        run: |
+          # Register a new user
+          curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/register
 
-        # Use the JWT token for subsequent requests
-        curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/login
+          # Login with the registered user and retrieve the JWT token
+          JWT_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/login | jq -r '.token')
 
-        # Assuming authentication token is obtained from the login response
-        AUTH_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/login | jq -r '.token')
+          # Get a list of quotes (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/quotes
 
-        curl -X GET -H "Authorization: Bearer $AUTH_TOKEN" http://localhost:8000/api/quotes
-        curl -X GET -H "Authorization: Bearer $AUTH_TOKEN" http://localhost:8000/api/quotes/3
-        curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $AUTH_TOKEN" -d '{"text": "New quote", "author": "Author"}' http://localhost:8000/api/quotes
-        curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $AUTH_TOKEN" -d '{"text": "Updated quote", "author": "Author"}' http://localhost:8000/api/quotes/1
-        curl -X DELETE -H "Authorization: Bearer $AUTH_TOKEN" http://localhost:8000/api/quotes/1
+          # Get the third quote (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/quotes/3
 
-        # Add more test commands as needed
+          # Add a new quote (authenticated)
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"text": "New quote", "author": "Author"}' http://localhost:8000/api/quotes
+
+          # Update the newly added quote (authenticated)
+          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"text": "Updated quote", "author": "Author"}' http://localhost:8000/api/quotes/1
+
+          # Delete the updated quote (authenticated)
+          curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/quotes/1
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Clean up Docker containers
+        run: docker-compose -f docker-compose.yaml down

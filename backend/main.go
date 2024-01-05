@@ -2,12 +2,12 @@
 package main
 
 import (
+	"api/database"
+	"api/routes"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"api/database"
-	"api/routes"
 )
 
 func main() {

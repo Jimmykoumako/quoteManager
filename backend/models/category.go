@@ -2,8 +2,6 @@ package models
 
 import "time"
 
-
-
 // Category Entity
 type Category struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`

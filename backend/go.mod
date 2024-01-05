@@ -48,4 +48,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-exclude golang.org/x/text v0.14.0
+// exclude golang.org/x/text v0.14.0

@@ -1,12 +1,12 @@
 package controllers
 
 import (
+	"api/database"
 	"api/models"
-    "api/database"
-    "api/utils"
+	"api/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"fmt"
 )
 
 // AuthenticateUser authenticates a user based on login credentials
@@ -29,7 +29,7 @@ func AuthenticateUser(input database.LoginInput) (models.User, error) {
 
 // RegisterUser registers a new user
 func RegisterUser(c *gin.Context) {
-    fmt.Println("Welcome to controller.RegisterUser")
+	fmt.Println("Welcome to controller.RegisterUser")
 	var userInput database.UserInput
 
 	// Bind the JSON request body to the UserInput struct
@@ -46,9 +46,8 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, newUser)
-    
-}
 
+}
 
 // LoginUser authenticates a user and generates a JWT
 func LoginUser(c *gin.Context) {
@@ -81,80 +80,69 @@ func LoginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
 }
 
-
-
 // UpdateUser updates an existing user by ID
 func UpdateUser(c *gin.Context) {
-    // Extract user ID from the URL parameter
-    userID := c.Param("id")
+	// Extract user ID from the URL parameter
+	userID := c.Param("id")
 
-    // Parse the authenticated user ID from the context or token
-    authUserID, err := parseUserIDFromContext(c)
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-        return
-    }
+	// Parse the authenticated user ID from the context or token
+	authUserID, err := parseUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
-    // Ensure that the authenticated user is updating their own details
-    if userID != authUserID {
-        c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
-        return
-    }
+	// Ensure that the authenticated user is updating their own details
+	if userID != authUserID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		return
+	}
 
-    // Implement logic to update a user by ID in the database
-    var updatedUser models.User
-    if err := c.ShouldBindJSON(&updatedUser); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	// Implement logic to update a user by ID in the database
+	var updatedUser models.User
+	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-    // Example using Gorm
-    result, err := database.UpdateUser(userID, updatedUser)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-        return
-    }
+	// Example using Gorm
+	result, err := database.UpdateUser(userID, updatedUser)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
 
-    c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, result)
 }
 
 // parseUserIDFromContext extracts the user ID from the request context
 func parseUserIDFromContext(c *gin.Context) (string, error) {
-    userIDValue, exists := c.Get("userID")
-    if !exists {
-        return "", fmt.Errorf("User ID not found in request context")
-    }
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		return "", fmt.Errorf("User ID not found in request context")
+	}
 
-    userID, ok := userIDValue.(string)
-    if !ok {
-        return "", fmt.Errorf("User ID is not of type string")
-    }
+	userID, ok := userIDValue.(string)
+	if !ok {
+		return "", fmt.Errorf("User ID is not of type string")
+	}
 
-    return userID, nil
+	return userID, nil
 }
-
-
-
-
-
-
 
 // DeleteUser deletes a user by ID
 func DeleteUser(c *gin.Context) {
-    // Extract user ID from the URL parameter
-    userID := c.Param("id")
+	// Extract user ID from the URL parameter
+	userID := c.Param("id")
 
+	err := database.DeleteUser(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-    err := database.DeleteUser(userID)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-
-    c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
-
-
 
 // GetUserQuotes retrieves quotes for a specific user
 func GetUserQuotes(c *gin.Context) {
@@ -188,45 +176,42 @@ func GetUserFolders(c *gin.Context) {
 	c.JSON(http.StatusOK, folders)
 }
 
-
 // GetQuotesByUserID retrieves quotes for a specific user
 func GetQuotesByUserID(c *gin.Context) {
-    userID := c.Param("id")
+	userID := c.Param("id")
 
-    quotes, err := database.GetQuotesByUserID(userID)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+	quotes, err := database.GetQuotesByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-    c.JSON(http.StatusOK, quotes)
+	c.JSON(http.StatusOK, quotes)
 }
 
 // GetFoldersByUserID retrieves folders for a specific user
 func GetFoldersByUserID(c *gin.Context) {
-    userID := c.Param("id")
+	userID := c.Param("id")
 
-    folders, err := database.GetFoldersByUserID(userID)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+	folders, err := database.GetFoldersByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-    c.JSON(http.StatusOK, folders)
+	c.JSON(http.StatusOK, folders)
 }
-
 
 // GetUserByID retrieves a user by ID with associated quotes and folders
 func GetUserByID(c *gin.Context) {
-    userID := c.Param("id")
+	userID := c.Param("id")
 
-    //var user models.User
-    result, err := database.GetUserByID(userID)
-    if err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
+	//var user models.User
+	result, err := database.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
 
-    c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, result)
 }
-

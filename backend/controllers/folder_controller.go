@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm" 
-	"net/http"
 	"api/models"
 	"api/utils"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"net/http"
 )
 
 var DB *gorm.DB

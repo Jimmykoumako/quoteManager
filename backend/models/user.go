@@ -1,9 +1,9 @@
 package models
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"time"
-    "golang.org/x/crypto/bcrypt" 
 )
 
 var DB *gorm.DB // Package-level variable to hold the Gorm DB instance
@@ -15,14 +15,12 @@ const AdminRole = "admin"
 //     DB = database
 // }
 
-
-
 // User represents a user in the system
 type User struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Username  string    `json:"username" gorm:"unique;not null;index"` // Added indexing for better query performance
 	Password  string    `json:"-" gorm:"not null"`
-	Quotes []Quote `json:"quotes" gorm:"foreignKey:user_id"`
+	Quotes    []Quote   `json:"quotes" gorm:"foreignKey:user_id"`
 	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
 }
@@ -41,6 +39,3 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 func (u *User) CheckPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 }
-
-
-

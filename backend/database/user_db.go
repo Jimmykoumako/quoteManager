@@ -3,7 +3,7 @@ package database
 import (
 	"api/models"
 	"errors"
-    "fmt"
+	"fmt"
 )
 
 // UserInput represents the input data for user registration
@@ -20,8 +20,8 @@ type LoginInput struct {
 
 // RegisterUser registers a new user in the database
 func RegisterUser(input UserInput) (models.User, error) {
-    fmt.Println("Welcome to models.RegisterUser")
-    if db == nil {
+	fmt.Println("Welcome to models.RegisterUser")
+	if db == nil {
 		return models.User{}, errors.New("nil database provided")
 	}
 
@@ -32,12 +32,12 @@ func RegisterUser(input UserInput) (models.User, error) {
 
 	// Save newUser to the database (using Gorm or your preferred ORM)
 	result := db.Create(&newUser)
-    if result.Error != nil {
-        // Handle the error, for example:
-        return models.User{}, result.Error
-    }
+	if result.Error != nil {
+		// Handle the error, for example:
+		return models.User{}, result.Error
+	}
 
-    fmt.Println("Bye from models.RegisterUser")
+	fmt.Println("Bye from models.RegisterUser")
 	return newUser, nil
 }
 
@@ -74,69 +74,68 @@ func GetUserByUsername(username string) (models.User, error) {
 
 // UpdateUser updates user details in the database
 func UpdateUser(userID string, updatedUser models.User) (models.User, error) {
-    // Replace "db" with your actual Gorm db instance
-    result := db.Model(&models.User{}).Where("id = ?", userID).Updates(updatedUser)
-    if result.Error != nil {
-        return models.User{}, result.Error
-    }
+	// Replace "db" with your actual Gorm db instance
+	result := db.Model(&models.User{}).Where("id = ?", userID).Updates(updatedUser)
+	if result.Error != nil {
+		return models.User{}, result.Error
+	}
 
-    return updatedUser, nil
+	return updatedUser, nil
 }
 
 // DeleteUser deletes a user account and associated data
 func DeleteUser(userID string) error {
-    // Replace "db" with your actual Gorm db instance
-    result := db.Where("id = ?", userID).Delete(&models.User{})
-    if result.Error != nil {
-        return result.Error
-    }
+	// Replace "db" with your actual Gorm db instance
+	result := db.Where("id = ?", userID).Delete(&models.User{})
+	if result.Error != nil {
+		return result.Error
+	}
 
-    // Delete associated quotes
-    result = db.Where("user_id = ?", userID).Delete(&models.Quote{})
-    if result.Error != nil {
-        return result.Error
-    }
+	// Delete associated quotes
+	result = db.Where("user_id = ?", userID).Delete(&models.Quote{})
+	if result.Error != nil {
+		return result.Error
+	}
 
-    // Delete associated folders
-    result = db.Where("user_id = ?", userID).Delete(&models.Folder{})
-    if result.Error != nil {
-        return result.Error
-    }
+	// Delete associated folders
+	result = db.Where("user_id = ?", userID).Delete(&models.Folder{})
+	if result.Error != nil {
+		return result.Error
+	}
 
-    return nil
+	return nil
 }
-
 
 // GetUserByID retrieves a user by ID with associated quotes and folders
 func GetUserByID(userID string) (models.User, error) {
-    var user models.User
-    result := db.Preload("Quotes").Preload("Folders").First(&user, userID)
-    if result.Error != nil {
-        return models.User{}, result.Error
-    }
-    return user, nil
+	var user models.User
+	result := db.Preload("Quotes").Preload("Folders").First(&user, userID)
+	if result.Error != nil {
+		return models.User{}, result.Error
+	}
+	return user, nil
 }
 
 // GetQuotesByUserID retrieves quotes for a specific user by ID
 func GetQuotesByUserID(userID string) ([]models.Quote, error) {
-    // Implement logic to fetch quotes for the specified user from the database
-    // Example using Gorm
-    var quotes []models.Quote
-    result := db.Where("user_id = ?", userID).Find(&quotes)
-    if result.Error != nil {
-        return nil, result.Error
-    }
-    return quotes, nil
+	// Implement logic to fetch quotes for the specified user from the database
+	// Example using Gorm
+	var quotes []models.Quote
+	result := db.Where("user_id = ?", userID).Find(&quotes)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return quotes, nil
 }
 
 // GetFoldersByUserID retrieves folders for a specific user by ID
 func GetFoldersByUserID(userID string) ([]models.Folder, error) {
-    // Implement logic to fetch folders for the specified user from the database
-    // Example using Gorm
-    var folders []models.Folder
-    result := db.Where("user_id = ?", userID).Find(&folders)
-    if result.Error != nil {
-        return nil, result.Error
-    }
-    return folders, nil
+	// Implement logic to fetch folders for the specified user from the database
+	// Example using Gorm
+	var folders []models.Folder
+	result := db.Where("user_id = ?", userID).Find(&folders)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return folders, nil
 }

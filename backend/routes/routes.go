@@ -3,90 +3,90 @@
 package routes
 
 import (
-    "github.com/gin-gonic/gin"
-    "api/controllers"
-    "api/middleware"
-    "golang.org/x/time/rate"
+	"api/controllers"
+	"api/middleware"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 )
 
 func SetupRouter() *gin.Engine {
-    r := gin.Default()
+	r := gin.Default()
 
-    // Apply tracing middleware to all routes
-    r.Use(middleware.TracingMiddleware())
+	// Apply tracing middleware to all routes
+	r.Use(middleware.TracingMiddleware())
 
-    // Apply security headers middleware to all routes
-    r.Use(middleware.SecurityHeadersMiddleware())
+	// Apply security headers middleware to all routes
+	r.Use(middleware.SecurityHeadersMiddleware())
 
-    // Apply request logging middleware to all routes
-    r.Use(middleware.LogRequest())
+	// Apply request logging middleware to all routes
+	r.Use(middleware.LogRequest())
 
-    // Create a rate limiter (example: 10 requests per second)
-    limiter := rate.NewLimiter(rate.Limit(20), 1)
+	// Create a rate limiter (example: 10 requests per second)
+	limiter := rate.NewLimiter(rate.Limit(20), 1)
 
-    // Apply rate limiting middleware to all routes
-    r.Use(middleware.RateLimiterMiddleware(limiter))
+	// Apply rate limiting middleware to all routes
+	r.Use(middleware.RateLimiterMiddleware(limiter))
 
-    // Apply log feedback action middleware to specific routes
-    r.Use(middleware.LogFeedbackAction())
-    
-    // Apply error handling middleware to all routes
-    r.Use(middleware.ErrorHandlerMiddleware())
+	// Apply log feedback action middleware to specific routes
+	r.Use(middleware.LogFeedbackAction())
 
-    // Public routes (no authentication required)
-    publicGroup := r.Group("/api/public")
-    {
-        publicGroup.POST("/users/register", controllers.RegisterUser)
-        publicGroup.POST("/users/login", controllers.LoginUser)
-        // Add other public routes as needed
-    }
+	// Apply error handling middleware to all routes
+	r.Use(middleware.ErrorHandlerMiddleware())
 
-    // Protected routes (authentication required)
-    protectedGroup := r.Group("/api")
-    protectedGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware to all routes in this group
-    protectedGroup.Use(middleware.TracingMiddleware()) // Apply tracing middleware to all routes in this group
-    protectedGroup.Use(middleware.SecurityHeadersMiddleware()) // Apply security headers middleware to all routes in this group
-    protectedGroup.Use(middleware.LogRequest()) // Apply request logging middleware to all routes in this group
-    //protectedGroup.Use(middleware.RateLimiterMiddleware(limiter)) // Apply rate limiting middleware to all routes in this group
-    protectedGroup.Use(middleware.LogFeedbackAction()) // Apply log feedback action middleware to all routes in this group
-    protectedGroup.Use(middleware.ErrorHandlerMiddleware()) // Apply error handling middleware to all routes in this group
-    {
-        // Quotes endpoints
-        quoteGroup := protectedGroup.Group("/quotes")
-        {
-            quoteGroup.GET("/", controllers.GetQuotes)
-            quoteGroup.GET("/:id", controllers.GetQuoteByID)
-            quoteGroup.POST("/", controllers.AddQuote)
-            quoteGroup.PUT("/:id", controllers.UpdateQuote)
-            quoteGroup.DELETE("/:id", controllers.DeleteQuote)
-        }
+	// Public routes (no authentication required)
+	publicGroup := r.Group("/api/public")
+	{
+		publicGroup.POST("/users/register", controllers.RegisterUser)
+		publicGroup.POST("/users/login", controllers.LoginUser)
+		// Add other public routes as needed
+	}
 
-        // User routes
-        userGroup := protectedGroup.Group("/users")
-        {
-            userGroup.GET("/:id", controllers.GetUserByID)
-            userGroup.PUT("/:id", controllers.UpdateUser)
-            userGroup.DELETE("/:id", controllers.DeleteUser)
-            // Add other user-related routes as needed
+	// Protected routes (authentication required)
+	protectedGroup := r.Group("/api")
+	protectedGroup.Use(middleware.AuthMiddleware())            // Apply authentication middleware to all routes in this group
+	protectedGroup.Use(middleware.TracingMiddleware())         // Apply tracing middleware to all routes in this group
+	protectedGroup.Use(middleware.SecurityHeadersMiddleware()) // Apply security headers middleware to all routes in this group
+	protectedGroup.Use(middleware.LogRequest())                // Apply request logging middleware to all routes in this group
+	//protectedGroup.Use(middleware.RateLimiterMiddleware(limiter)) // Apply rate limiting middleware to all routes in this group
+	protectedGroup.Use(middleware.LogFeedbackAction())      // Apply log feedback action middleware to all routes in this group
+	protectedGroup.Use(middleware.ErrorHandlerMiddleware()) // Apply error handling middleware to all routes in this group
+	{
+		// Quotes endpoints
+		quoteGroup := protectedGroup.Group("/quotes")
+		{
+			quoteGroup.GET("/", controllers.GetQuotes)
+			quoteGroup.GET("/:id", controllers.GetQuoteByID)
+			quoteGroup.POST("/", controllers.AddQuote)
+			quoteGroup.PUT("/:id", controllers.UpdateQuote)
+			quoteGroup.DELETE("/:id", controllers.DeleteQuote)
+		}
 
-            // Example: Get user's quotes
-            userGroup.GET("/:id/quotes", controllers.GetUserQuotes)
+		// User routes
+		userGroup := protectedGroup.Group("/users")
+		{
+			userGroup.GET("/:id", controllers.GetUserByID)
+			userGroup.PUT("/:id", controllers.UpdateUser)
+			userGroup.DELETE("/:id", controllers.DeleteUser)
+			// Add other user-related routes as needed
 
-            // Example: Get user's folders
-            userGroup.GET("/:id/folders", controllers.GetUserFolders)
-        }
+			// Example: Get user's quotes
+			userGroup.GET("/:id/quotes", controllers.GetUserQuotes)
 
-        // Feedback endpoints
-        feedbackGroup := protectedGroup.Group("/feedback")
-        {
-            feedbackGroup.GET("/:id", controllers.GetFeedbackByID)
-            feedbackGroup.GET("/", controllers.GetAllFeedback)
-            feedbackGroup.POST("/:quoteId", controllers.AddFeedbackForQuote)
-            // Add other feedback-related routes as needed
-        }
+			// Example: Get user's folders
+			userGroup.GET("/:id/folders", controllers.GetUserFolders)
+		}
 
-        // Other protected endpoints go here...
-    }
+		// Feedback endpoints
+		feedbackGroup := protectedGroup.Group("/feedback")
+		{
+			feedbackGroup.GET("/:id", controllers.GetFeedbackByID)
+			feedbackGroup.GET("/", controllers.GetAllFeedback)
+			feedbackGroup.POST("/:quoteId", controllers.AddFeedbackForQuote)
+			// Add other feedback-related routes as needed
+		}
 
-    return r
+		// Other protected endpoints go here...
+	}
+
+	return r
 }

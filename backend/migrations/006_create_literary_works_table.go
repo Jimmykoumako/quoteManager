@@ -2,8 +2,8 @@
 package migrations
 
 import (
-	"gorm.io/gorm"
 	"api/models" // Import your models package
+	"gorm.io/gorm"
 )
 
 func Up(db *gorm.DB) error {

@@ -2,14 +2,13 @@
 package routes
 
 import (
+	"api/database"
+	"api/models"
 	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"api/models"
-	"api/database"
 )
-
 
 func TestRegisterUser(t *testing.T) {
 	r := SetupRouter()
@@ -88,7 +87,6 @@ func TestAddQuote(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
 
 	// Set content type
 	req.Header.Set("Content-Type", "application/json")
@@ -122,7 +120,7 @@ func TestAddFeedbackForQuote(t *testing.T) {
 		UserID:   1,
 	}
 	// Get the database reference
-    db := database.GetDB()
+	db := database.GetDB()
 	db.Create(&quote)
 
 	// Define test input
@@ -308,7 +306,7 @@ func TestGetFeedbackByID(t *testing.T) {
 		QuoteID: 1,
 	}
 	// Get the database reference
-    db := database.GetDB()
+	db := database.GetDB()
 	db.Create(&feedback)
 
 	// Create a request

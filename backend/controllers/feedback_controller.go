@@ -3,12 +3,12 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
 	"api/models"
-	"strconv"
-	"math/rand"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"math/rand"
+	"net/http"
+	"strconv"
 )
 
 // In-memory storage for demonstration purposes
@@ -93,6 +93,7 @@ func AddFeedbackForQuote(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, feedback)
 }
+
 // generateFeedbackID generates a unique ID for feedback (for demonstration purposes)
 func generateFeedbackID() string {
 	// In a real-world scenario, you would use a more sophisticated method to generate unique IDs

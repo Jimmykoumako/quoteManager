@@ -1,27 +1,26 @@
-
 package utils
 
 import (
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 	"strconv"
 )
 
 // GetUserIDFromContext retrieves the user ID from the Gin context
 func GetUserIDFromContext(c *gin.Context) string {
-    // Assuming the user ID is stored in the Gin context under the key "UserID"
-    userID, exists := c.Get("UserID")
-    if !exists {
-        // Handle the case where the user ID is not found in the context
-        return ""
-    }
+	// Assuming the user ID is stored in the Gin context under the key "UserID"
+	userID, exists := c.Get("UserID")
+	if !exists {
+		// Handle the case where the user ID is not found in the context
+		return ""
+	}
 
-    // Convert the retrieved user ID to a string (assuming it's a string)
-    if userIDStr, ok := userID.(string); ok {
-        return userIDStr
-    }
+	// Convert the retrieved user ID to a string (assuming it's a string)
+	if userIDStr, ok := userID.(string); ok {
+		return userIDStr
+	}
 
-    // Handle the case where the user ID is not of the expected type
-    return ""
+	// Handle the case where the user ID is not of the expected type
+	return ""
 }
 
 // ConvertUserIDToUint converts a user ID from string to uint

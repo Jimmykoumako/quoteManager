@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"fmt"
-	"net/http"
-	"api/models"
 	"api/database"
+	"api/models"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 )
 
@@ -52,13 +52,12 @@ func AddQuote(c *gin.Context) {
 	}
 
 	// Extract user ID from the authentication middleware or token
-    userID, err := parseUserIDFromContext(c)
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-        return
-    }
-	
-	
+	userID, err := parseUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	// Convert quoteID to uint
 	userIDUInt, err := convertToUint(userID)
 	if err != nil {
@@ -129,7 +128,6 @@ func DeleteQuote(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Quote deleted successfully"})
 }
 
-
 // convertToUint converts a string to uint.
 // It returns an error if the conversion fails or if the result is negative.
 func convertToUint(s string) (uint, error) {
@@ -144,4 +142,3 @@ func convertToUint(s string) (uint, error) {
 
 	return uint(converted), nil
 }
-

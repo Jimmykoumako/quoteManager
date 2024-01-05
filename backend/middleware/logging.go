@@ -37,5 +37,3 @@ func LogFeedbackAction() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-

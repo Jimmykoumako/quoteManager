@@ -1,12 +1,10 @@
 package database
 
 import (
-	"gorm.io/gorm"
 	"api/models"
 	"fmt"
+	"gorm.io/gorm"
 )
-
-
 
 // SetDB sets the Gorm database connection
 func SetDB(database *gorm.DB) {
@@ -50,8 +48,8 @@ func AddQuote(newQuote models.Quote) (models.Quote, error) {
 	}
 
 	// Set default values for optional fields
-	if newQuote.WorkID  != 1 {
-		newQuote.WorkID  = 1
+	if newQuote.WorkID != 1 {
+		newQuote.WorkID = 1
 	}
 
 	// Add the new quote to the database
@@ -62,7 +60,6 @@ func AddQuote(newQuote models.Quote) (models.Quote, error) {
 	fmt.Println("Welcome to controller.AddQuote")
 	return newQuote, nil
 }
-
 
 // UpdateQuote updates an existing quote by ID in the database
 func UpdateQuote(quoteID uint, updatedQuote models.Quote) (models.Quote, error) {
