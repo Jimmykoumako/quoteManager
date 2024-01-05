@@ -69,4 +69,4 @@ jobs:
     needs: test
     steps:
       - name: Clean up Docker containers
-        run: sudo docker compose down
+        run: sudo docker compose -f compose.yaml down
