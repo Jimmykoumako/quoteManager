@@ -42,6 +42,7 @@ func GetQuoteByID(c *gin.Context) {
 
 // AddQuote adds a new quote
 func AddQuote(c *gin.Context) {
+	fmt.Println("Welcome to controller.AddQuote")
 	var newQuote models.Quote
 
 	// Bind JSON request body to Quote model
@@ -49,6 +50,23 @@ func AddQuote(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
+
+	// Extract user ID from the authentication middleware or token
+    userID, err := parseUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+	
+	
+	// Convert quoteID to uint
+	userIDUInt, err := convertToUint(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	newQuote.UserID = userIDUInt
 
 	// Add the new quote to the database
 	addedQuote, err := database.AddQuote(newQuote)
@@ -58,6 +76,7 @@ func AddQuote(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, addedQuote)
+	fmt.Println("Bye from controller.AddQuote")
 }
 
 // UpdateQuote updates an existing quote by ID

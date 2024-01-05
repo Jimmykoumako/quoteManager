@@ -46,7 +46,7 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, newUser)
-    fmt.Println("Bye from controller.RegisterUser")
+    
 }
 
 

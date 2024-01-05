@@ -1,0 +1,298 @@
+{
+  "info": {
+    "_postman_id": "6f328f3c-9da7-4ee9-8bd4-9e652da1ddaf",
+    "name": "Quote Manager API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Registration and Login",
+      "item": [
+        {
+          "name": "Invalid Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"\",\"password\":\"\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/public/users/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "public",
+                "users",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"invaliduser\",\"password\":\"invalidpassword\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/public/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "public",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Quotes",
+      "item": [
+        {
+          "name": "Get Quotes without Authentication",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8000/api/quotes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "quotes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Non-existent Quote",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ1MTI5MDIsImlhdCI6MTcwNDQyNjUwMiwidXNlcm5hbWUiOiJ0ZXN0dXNlciJ9.7-hQjRHLKK3jTxPGG6TLEpYARTEMxsR9Hlki7pTR5iU"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\":\"Updated quote text\",\"author\":\"Updated author\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/quotes/999999",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "quotes",
+                "999999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Non-existent Quote",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ1MTI5MDIsImlhdCI6MTcwNDQyNjUwMiwidXNlcm5hbWUiOiJ0ZXN0dXNlciJ9.7-hQjRHLKK3jTxPGG6TLEpYARTEMxsR9Hlki7pTR5iU"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/quotes/999999",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "quotes",
+                "999999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Quote with Invalid Authorization Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer INVALID_TOKEN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\":\"New quote text\",\"author\":\"New author\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/quotes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "quotes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Quotes without Authorization",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8000/api/users/2/quotes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "2",
+                "quotes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User without Authorization",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"newusername\",\"password\":\"newpassword\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/users/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User without Authorization",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "http://localhost:8000/api/users/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Feedback for Non-existent Quote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ1MTI5MDIsImlhdCI6MTcwNDQyNjUwMiwidXNlcm5hbWUiOiJ0ZXN0dXNlciJ9.7-hQjRHLKK3jTxPGG6TLEpYARTEMxsR9Hlki7pTR5iU"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/feedback/999999",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "feedback",
+                "999999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
