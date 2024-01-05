@@ -1,0 +1,36 @@
+name: API Tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run_api_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Run API Tests
+      run: |
+        # Replace the following with your actual API test commands
+        REGISTER_RESPONSE=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/register)
+
+        # Extract the JWT token from the registration response
+        JWT_TOKEN=$(echo $REGISTER_RESPONSE | jq -r '.token')
+
+        # Use the JWT token for subsequent requests
+        curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/login
+
+        # Assuming authentication token is obtained from the login response
+        AUTH_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/login | jq -r '.token')
+
+        curl -X GET -H "Authorization: Bearer $AUTH_TOKEN" http://localhost:8000/api/quotes
+        curl -X GET -H "Authorization: Bearer $AUTH_TOKEN" http://localhost:8000/api/quotes/3
+        curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $AUTH_TOKEN" -d '{"text": "New quote", "author": "Author"}' http://localhost:8000/api/quotes
+        curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $AUTH_TOKEN" -d '{"text": "Updated quote", "author": "Author"}' http://localhost:8000/api/quotes/1
+        curl -X DELETE -H "Authorization: Bearer $AUTH_TOKEN" http://localhost:8000/api/quotes/1
+
+        # Add more test commands as needed
