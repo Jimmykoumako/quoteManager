@@ -111,12 +111,6 @@ func defineUserRoutes(protectedGroup *gin.RouterGroup) {
 		userGroup.GET("/:id/profile", controllers.GetUserProfile)
 		userGroup.PUT("/:id/profile", controllers.UpdateUserProfile)
 		// Add other user-related routes as needed
-
-		// Example: Get user's quotes
-		userGroup.GET("/:id/quotes", controllers.GetUserQuotes)
-
-		// Example: Get user's folders
-		userGroup.GET("/:id/folders", controllers.GetUserFolders)
 	}
 }
 

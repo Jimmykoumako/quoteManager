@@ -40,14 +40,14 @@ func UsernameExists(username string) (bool, error) {
     if result.Error != nil {
         if errors.Is(result.Error, gorm.ErrRecordNotFound) {
             // User not found, username is available
-            return false, nil
+            return true, nil
         }
         // An error occurred while querying the database
-        return false, result.Error
+        return true, result.Error
     }
 
     // User found, username is not available
-    return true, nil
+    return false, nil
 }
 
 
