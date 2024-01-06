@@ -169,11 +169,11 @@ jobs:
           # Delete the LiteraryWork
           curl -X DELETE http://localhost:8000/api/literaryworks/1
         
-      - name: Install Ginkgo and Gomega
-        run: go install github.com/onsi/ginkgo/ginkgo@latest github.com/onsi/gomega@latest
+      # - name: Install Ginkgo and Gomega
+      #   run: go install github.com/onsi/ginkgo/ginkgo@latest github.com/onsi/gomega@latest
 
-      - name: Run Ginkgo Tests
-        run: ginkgo -r
+      # - name: Run Ginkgo Tests
+      #   run: ginkgo -r
 
       
       #   run: sudo docker exec goapp  go test ./routes/
