@@ -35,7 +35,7 @@ func applyGlobalMiddlewares(r *gin.Engine) {
 	r.Use(middleware.LogRequest())
 
 	// Create a rate limiter (example: 20 requests per second)
-	limiter := rate.NewLimiter(rate.Limit(20), 1)
+	// limiter := rate.NewLimiter(rate.Limit(20), 1)
 
 	// Apply rate limiting middleware to all routes
 	r.Use(middleware.RateLimiterMiddleware(limiter))
