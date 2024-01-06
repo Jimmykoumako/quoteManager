@@ -5,7 +5,7 @@ import (
 	"api/controllers"
 	"api/middleware"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/time/rate"
+	// "golang.org/x/time/rate"
 )
 
 func SetupRouter() *gin.Engine {
@@ -38,7 +38,7 @@ func applyGlobalMiddlewares(r *gin.Engine) {
 	// limiter := rate.NewLimiter(rate.Limit(20), 1)
 
 	// Apply rate limiting middleware to all routes
-	r.Use(middleware.RateLimiterMiddleware(limiter))
+	// r.Use(middleware.RateLimiterMiddleware(limiter))
 
 	// Apply log feedback action middleware to specific routes
 	r.Use(middleware.LogFeedbackAction())
@@ -76,6 +76,7 @@ func defineProtectedRoutes(r *gin.Engine) {
 	defineLikeRoutes(r) // Note: Not added to the protectedGroup as it seems to be separate
 	defineCategoryRoutes(protectedGroup)
 	defineTagRoutes(protectedGroup)
+	defineLiteraryWorkRoutes(protectedGroup)
 	// Add other protected endpoints go here...
 }
 
@@ -167,4 +168,16 @@ func defineTagRoutes(protectedGroup *gin.RouterGroup) {
 		tagGroup.PUT("/:id", controllers.UpdateTag)
 		tagGroup.DELETE("/:id", controllers.DeleteTag)
 	}
+}
+
+// defineLiteraryWorkRoutes defines routes related to literary works
+func defineLiteraryWorkRoutes(protectedGroup *gin.RouterGroup) {
+    literaryWorkGroup := protectedGroup.Group("/literary-works")
+    {
+        literaryWorkGroup.GET("/", controllers.GetLiteraryWorks)
+        literaryWorkGroup.GET("/:id", controllers.GetLiteraryWorkByID)
+        literaryWorkGroup.POST("/", controllers.CreateLiteraryWork)
+        literaryWorkGroup.PUT("/:id", controllers.UpdateLiteraryWork)
+        literaryWorkGroup.DELETE("/:id", controllers.DeleteLiteraryWork)
+    }
 }

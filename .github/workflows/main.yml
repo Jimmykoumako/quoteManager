@@ -150,4 +150,24 @@ jobs:
 
           # Delete an existing tag by ID
           curl -X DELETE http://localhost:8000/api/tags/1
+      
+      # Run API Tests for LiteraryWork
+      - name: Run API Tests for LiteraryWork
+        run: |
+          # Add a new LiteraryWork
+          curl -X POST -H "Content-Type: application/json" -d '{"title": "The Great Gatsby", "author": "F. Scott Fitzgerald"}' http://localhost:8000/api/literaryworks
+
+          # Get a list of LiteraryWorks
+          curl -X GET http://localhost:8000/api/literaryworks
+
+          # Get the newly added LiteraryWork by ID
+          curl -X GET http://localhost:8000/api/literaryworks/1
+
+          # Update the LiteraryWork
+          curl -X PUT -H "Content-Type: application/json" -d '{"title": "Updated Title", "author": "Updated Author"}' http://localhost:8000/api/literaryworks/1
+
+          # Delete the LiteraryWork
+          curl -X DELETE http://localhost:8000/api/literaryworks/1
+        
+        
       #   run: sudo docker exec goapp  go test ./routes/
