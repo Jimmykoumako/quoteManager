@@ -104,26 +104,17 @@ func SaveAdditionalUserInfoToDatabase(username, email, firstName, lastName strin
 // RegisterUserAndProfile registers a new user and creates a user profile in the database
 func RegisterUserAndProfile(input UserRegistrationInput) (models.User, models.UserProfile, error) {
     // Check if the username already exists in the database
-    _, err := GetUserByUsername(input.Username)
+    savedUser, err := GetUserByUsername(input.Username)
     if err == nil {
         // Username already exists, return an error
         return models.User{}, models.UserProfile{}, errors.New("username already in use")
     }
 
-    newUser := models.User{
-        Username: input.Username,
-        Password: input.Password,
-    }
-
-    // Save newUser to the database
-    result := db.Create(&newUser)
-    if result.Error != nil {
-        return models.User{}, models.UserProfile{}, result.Error
-    }
+	
 
     // Create a user profile for the new user
     newProfile := models.UserProfile{
-        UserID:    newUser.ID,
+        UserID:    savedUser.ID,
         FirstName: input.FirstName,
         LastName:  input.LastName,
         Email:     input.Email,

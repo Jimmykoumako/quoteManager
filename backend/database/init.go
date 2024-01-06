@@ -22,7 +22,7 @@ func InitDB() {
 	logger.Log.Info("Connected to PostgreSQL...")
 
 	// Auto-migrate the schema
-	db.AutoMigrate(&models.Like{}, &models.Folder{}, &models.LiteraryWork{}, &models.Feedback{}, &models.Tag{}, &models.Category{}, &models.User{}, &models.Quote{})
+	db.AutoMigrate(&models.Like{}, &models.Folder{}, &models.LiteraryWork{}, &models.Feedback{}, &models.Tag{}, &models.Category{}, &models.User{}, &models.Quote{}, &models.UserProfile{})
 }
 
 // CloseDB closes the database connection
