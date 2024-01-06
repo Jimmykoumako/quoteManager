@@ -40,43 +40,44 @@ func UsernameExists(username string) (bool, error) {
     if result.Error != nil {
         if errors.Is(result.Error, gorm.ErrRecordNotFound) {
             // User not found, username is available
-            return true, nil
+            log.Printf("UsernameExists: Username %s is available", username)
+            return false, nil
         }
         // An error occurred while querying the database
-        return true, result.Error
+        log.Printf("Error checking username existence: %v", result.Error)
+        return false, result.Error
     }
 
     // User found, username is not available
-    return false, nil
+    log.Printf("UsernameExists: Username %s is not available", username)
+    return true, nil
 }
-
 
 // SaveBasicUserInfoToDatabase saves basic user information to the database
 func SaveBasicUserInfoToDatabase(username, password string) error {
+	log.Printf("Welcome to SaveBasicUserInfoToDatabase ")
     // Hash the password before saving it to the database
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
     if err != nil {
-        log.Printf("Error hashing password: %v", err)
+        log.Printf("SaveBasicUserInfoToDatabase: Error hashing password: %v", err)
         return err
     }
 
     // Create input for RegisterUserAndProfile
-    input := UserRegistrationInput{
+    input := models.User{
         Username:  username,
         Password:  string(hashedPassword),
-        FirstName: "", // You can set default values or leave them empty
-        LastName:  "",
-        Email:     "",
-        Birthdate: time.Time{},
     }
 
-    // Call RegisterUserAndProfile to create user and profile
-    _, _, err = RegisterUserAndProfile(input)
-    if err != nil {
-        log.Printf("Error registering user and profile: %v", err)
-    }
+	log.Printf("About to save the new user")
+	// Save the new profile to the database
+	result := db.Create(&input)
+	if result.Error != nil {
+		log.Printf("RegisterUserAndProfile: Error creating user profile: %v", result.Error)
+		return result.Error
+	}
 
-    return err
+    return nil
 }
 
 // SaveAdditionalUserInfoToDatabase saves additional user information to the database
@@ -92,25 +93,25 @@ func SaveAdditionalUserInfoToDatabase(username, email, firstName, lastName strin
     }
 
     // Call RegisterUserAndProfile to create user and profile
-    _, _, err := RegisterUserAndProfile(input)
+    newUser, newProfile, err := RegisterUserAndProfile(input)
     if err != nil {
-        log.Printf("Error registering user and profile: %v", err)
+        log.Printf("SaveAdditionalUserInfoToDatabase: Error registering user and profile: %v", err)
+    } else {
+        log.Printf("SaveAdditionalUserInfoToDatabase: User %s registered successfully with ID %d and Profile ID %d", newUser.Username, newUser.ID, newProfile.ID)
     }
 
     return err
 }
 
-
 // RegisterUserAndProfile registers a new user and creates a user profile in the database
 func RegisterUserAndProfile(input UserRegistrationInput) (models.User, models.UserProfile, error) {
     // Check if the username already exists in the database
     savedUser, err := GetUserByUsername(input.Username)
-    if err == nil {
+    if err != nil {
         // Username already exists, return an error
+        log.Printf("RegisterUserAndProfile: Error registering user and profile: username %s already in use", input.Username)
         return models.User{}, models.UserProfile{}, errors.New("username already in use")
     }
-
-	
 
     // Create a user profile for the new user
     newProfile := models.UserProfile{
@@ -122,14 +123,15 @@ func RegisterUserAndProfile(input UserRegistrationInput) (models.User, models.Us
     }
 
     // Save the new profile to the database
-    result = db.Create(&newProfile)
+    result := db.Create(&newProfile)
     if result.Error != nil {
+        log.Printf("RegisterUserAndProfile: Error creating user profile: %v", result.Error)
         return models.User{}, models.UserProfile{}, result.Error
     }
 
-    return newUser, newProfile, nil
+    log.Printf("RegisterUserAndProfile: User and profile registered successfully")
+    return savedUser, newProfile, nil
 }
-
 
 
 
@@ -140,17 +142,23 @@ func AuthenticateUser(input LoginInput) (models.User, error) {
 	// Retrieve user from the database by username
 	foundUser, err := GetUserByUsername(input.Username)
 	if err != nil {
+		log.Printf("AuthenticateUser: Error retrieving user by username: %v", err)
 		// Handle the case where the user is not found or other database-related errors
 		return models.User{}, err
 	}
 
 	// Check if the provided password matches the hashed password
 	if err := foundUser.CheckPassword(input.Password); err != nil {
+		log.Printf("AuthenticateUser: Authentication failed for user %s and password %s", input.Username, input.Password)
 		return models.User{}, err
 	}
 
+	// Log successful authentication without exposing sensitive information
+	log.Printf("AuthenticateUser: User %s authenticated successfully", input.Username)
+
 	return foundUser, nil
 }
+
 
 // GetUserByUsername retrieves a user from the database by username
 func GetUserByUsername(username string) (models.User, error) {
@@ -160,9 +168,11 @@ func GetUserByUsername(username string) (models.User, error) {
 	result := db.Where("username = ?", username).First(&user)
 	if result.Error != nil {
 		// Handle specific cases, such as gorm.ErrRecordNotFound
+		log.Printf("GetUserByUsername: Error retrieving user by username %s: %v", username, result.Error)
 		return models.User{}, result.Error
 	}
 
+	log.Printf("GetUserByUsername: User retrieved successfully for username %s", username)
 	return user, nil
 }
 
@@ -239,7 +249,7 @@ func GetUserProfile(userID string) (models.UserProfile, error) {
     // Implement logic to fetch user profile information from the database
     // Example using Gorm
     var userProfile models.UserProfile
-    if err := db.Where("UserID = ?", userID).First(&userProfile).Error; err != nil {
+    if err := db.Where("user_id = ?", userID).First(&userProfile).Error; err != nil {
         return models.UserProfile{}, err
     }
 

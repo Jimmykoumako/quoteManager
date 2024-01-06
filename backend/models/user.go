@@ -4,6 +4,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"time"
+	"log"
 )
 
 var DB *gorm.DB // Package-level variable to hold the Gorm DB instance
@@ -37,7 +38,11 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 
 // CheckPassword verifies if the provided password matches the hashed password
 func (u *User) CheckPassword(password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+    err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+    if err != nil {
+        log.Printf("Password comparison error: %v", err)
+    }
+    return nil
 }
 
 

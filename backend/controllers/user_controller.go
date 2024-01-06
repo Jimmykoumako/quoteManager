@@ -69,13 +69,17 @@ func CheckUsernameAvailability(c *gin.Context) {
     }
 
     // Check if the username is available
-    available, err := database.UsernameExists(input.Username)
+    notAvailable, err := database.UsernameExists(input.Username)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    c.JSON(http.StatusOK, gin.H{"available": !available})
+	if notAvailable {
+		c.JSON(http.StatusConflict, gin.H{"error": "Username already in use"})
+	}
+
+    c.JSON(http.StatusOK, gin.H{"available": !notAvailable})
 }
 
 // RegisterBasicUserInfo collects basic user information (username and password)
@@ -91,8 +95,8 @@ func RegisterBasicUserInfo(c *gin.Context) {
     }
 
     // Check if the username is available
-    available, _ := database.UsernameExists(userInput.Username)
-    if !available {
+    notAvailable, _ := database.UsernameExists(userInput.Username)
+    if notAvailable {
 		c.JSON(http.StatusConflict, gin.H{"error": "Username already in use"})
         return
     }
@@ -149,10 +153,14 @@ func RegisterFinalize(c *gin.Context) {
 
 // LoginUser authenticates a user and generates a JWT
 func LoginUser(c *gin.Context) {
+	// Log entry point
+	log.Println("LoginUser: Entry point")
+
 	var loginInput database.LoginInput
 
 	// Bind the JSON request body to the LoginInput struct
 	if err := c.ShouldBindJSON(&loginInput); err != nil {
+		log.Printf("LoginUser: Error binding JSON request body: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -160,6 +168,7 @@ func LoginUser(c *gin.Context) {
 	// Implement logic to authenticate the user based on the login credentials
 	authUser, err := database.AuthenticateUser(loginInput)
 	if err != nil {
+		log.Printf("LoginUser: Authentication failed: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 		return
 	}
@@ -167,6 +176,7 @@ func LoginUser(c *gin.Context) {
 	// Generate JWT
 	token, err := utils.GenerateJWT(authUser.Username)
 	if err != nil {
+		log.Printf("LoginUser: Failed to generate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
@@ -174,9 +184,13 @@ func LoginUser(c *gin.Context) {
 	// Set the JWT as a cookie with a one-hour expiration
 	c.SetCookie("jwt", token, 3600, "/", "", false, true)
 
+	// Log successful login
+	log.Printf("LoginUser: User %s logged in successfully", authUser.Username)
+
 	// Respond with other data or a success message
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
 }
+
 
 // UpdateUser updates an existing user by ID
 func UpdateUser(c *gin.Context) {
