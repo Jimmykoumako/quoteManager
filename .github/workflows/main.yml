@@ -110,24 +110,44 @@ jobs:
 
           # Delete an existing folder by ID (authenticated)
           curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/folders/1
-
-          - name: Run Category API Tests
-          run: |
-            # Create a new category
-            curl -X POST -H "Content-Type: application/json" -d '{"name": "Category1"}' http://localhost:8000/api/categories
-  
-            # Get all categories
-            curl -X GET http://localhost:8000/api/categories
-  
-            # Get a specific category by ID
-            curl -X GET http://localhost:8000/api/categories/1
-  
-            # Update a category by ID
-            curl -X PUT -H "Content-Type: application/json" -d '{"name": "UpdatedCategory"}' http://localhost:8000/api/categories/1
-  
-            # Delete a category by ID
-            curl -X DELETE http://localhost:8000/api/categories/1
+      
 
 
+      # Run API Tests for Categories
       # - name: Run tests
+      - name: Run Category API Tests
+        run: |
+          # Create a new category
+          curl -X POST -H "Content-Type: application/json" -d '{"name": "Category1"}' http://localhost:8000/api/categories
+
+          # Get all categories
+          curl -X GET http://localhost:8000/api/categories
+
+          # Get a specific category by ID
+          curl -X GET http://localhost:8000/api/categories/1
+
+          # Update a category by ID
+          curl -X PUT -H "Content-Type: application/json" -d '{"name": "UpdatedCategory"}' http://localhost:8000/api/categories/1
+
+          # Delete a category by ID
+          curl -X DELETE http://localhost:8000/api/categories/1
+          
+      # Run API Tests for Tags
+      # - name: Run tests
+      - name: Run API Tests for Tags
+        run: |
+          # Create a new tag
+          curl -X POST -H "Content-Type: application/json" -d '{"name": "NewTag"}' http://localhost:8000/api/tags
+
+          # Get all tags
+          curl -X GET http://localhost:8000/api/tags
+
+          # Get a specific tag by ID
+          curl -X GET http://localhost:8000/api/tags/1
+
+          # Update an existing tag by ID
+          curl -X PUT -H "Content-Type: application/json" -d '{"name": "UpdatedTag"}' http://localhost:8000/api/tags/1
+
+          # Delete an existing tag by ID
+          curl -X DELETE http://localhost:8000/api/tags/1
       #   run: sudo docker exec goapp  go test ./routes/
