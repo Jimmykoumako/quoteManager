@@ -75,6 +75,7 @@ func defineProtectedRoutes(r *gin.Engine) {
 	defineFolderRoutes(protectedGroup)
 	defineLikeRoutes(r) // Note: Not added to the protectedGroup as it seems to be separate
 	defineCategoryRoutes(protectedGroup)
+	defineTagRoutes(protectedGroup)
 	// Add other protected endpoints go here...
 }
 
@@ -154,4 +155,16 @@ func defineCategoryRoutes(protectedGroup *gin.RouterGroup) {
         categoryGroup.PUT("/:id", controllers.UpdateCategory)
         categoryGroup.DELETE("/:id", controllers.DeleteCategory)
     }
+}
+
+// defineTagRoutes defines routes related to tags
+func defineTagRoutes(protectedGroup *gin.RouterGroup) {
+	tagGroup := protectedGroup.Group("/tags")
+	{
+		tagGroup.GET("/", controllers.GetTags)
+		tagGroup.GET("/:id", controllers.GetTagByID)
+		tagGroup.POST("/", controllers.CreateTag)
+		tagGroup.PUT("/:id", controllers.UpdateTag)
+		tagGroup.DELETE("/:id", controllers.DeleteTag)
+	}
 }
