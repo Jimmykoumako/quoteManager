@@ -1,4 +1,4 @@
-name: Go Application User Action Tests
+name: Go Application In-Depth User Scenario Tests
 
 on:
   push:
@@ -46,37 +46,44 @@ jobs:
           # Register a new user
           curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/register
 
-          # Check username availability (should return false as it's already registered)
-          curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser"}' http://localhost:8000/api/public/users/check-username
-
           # Login with the registered user and retrieve the JWT token
           JWT_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/login | jq -r '.token')
 
-          # Get user profile (authenticated)
-          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/users/profile
-
-      - name: Update User Profile
+      - name: Create Literary Work
         run: |
-          # Update user profile (authenticated)
-          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"full_name": "Test User", "email": "testuser@example.com"}' http://localhost:8000/api/users/profile
+          # Create a new literary work (authenticated)
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"title": "The Great Gatsby", "author": "F. Scott Fitzgerald"}' http://localhost:8000/api/literaryworks
 
-          # Get updated user profile (authenticated)
-          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/users/profile
+          # Get the list of literary works (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/literaryworks
 
-      - name: Change Password
+      - name: Add Quotes to Literary Work
         run: |
-          # Change user password (authenticated)
-          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"old_password": "testpassword", "new_password": "newtestpassword"}' http://localhost:8000/api/users/change-password
+          # Add quotes to the literary work (authenticated)
+          QUOTE_ID=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"text": "Quote 1", "author": "Author 1"}' http://localhost:8000/api/quotes | jq -r '.id')
 
-          # Login with the updated password
-          NEW_JWT_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "newtestpassword"}' http://localhost:8000/api/public/users/login | jq -r '.token')
+          # Get the added quote by ID (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/quotes/$QUOTE_ID
 
-          # Use the new JWT token for further authenticated requests
+          # Add another quote to the literary work (authenticated)
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"text": "Quote 2", "author": "Author 2"}' http://localhost:8000/api/quotes
 
-      - name: Delete User Account
+          # Get the list of quotes in the literary work (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/literaryworks/1/quotes
+
+      - name: Provide Feedback for Quotes
         run: |
-          # Delete user account (authenticated)
-          curl -X DELETE -H "Authorization: Bearer $NEW_JWT_TOKEN" http://localhost:8000/api/users/delete-account
+          # Provide feedback for a quote (authenticated)
+          FEEDBACK_ID=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"rating": 5, "comment": "Great quote!"}' http://localhost:8000/api/feedback/$QUOTE_ID | jq -r '.id')
 
-          # Try to login with the deleted user (should fail)
-          curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "newtestpassword"}' http://localhost:8000/api/public/users/login
+          # Get the added feedback by ID (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/$FEEDBACK_ID
+
+          # Update the feedback (authenticated)
+          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"rating": 4, "comment": "Updated feedback"}' http://localhost:8000/api/feedback/$FEEDBACK_ID
+
+          # Get the updated feedback by ID (authenticated)
+          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/$FEEDBACK_ID
+
+          # Delete the feedback (authenticated)
+          curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/$FEEDBACK_ID
