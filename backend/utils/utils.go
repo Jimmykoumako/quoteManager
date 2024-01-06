@@ -3,6 +3,9 @@ package utils
 import (
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"errors"
+	"github.com/dgrijalva/jwt-go"
+	"time"
 )
 
 // GetUserIDFromContext retrieves the user ID from the Gin context
@@ -32,3 +35,53 @@ func ConvertUserIDToUint(userID string) (uint, error) {
 
 	return uint(userIDUint), nil
 }
+
+var (
+	// SecretKey is the secret key used for signing and verifying JWT tokens
+	SecretKey = []byte("your_secret_key_here")
+)
+
+// Claims represents the claims of a JWT token
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+// GenerateAccessToken generates a new access token
+func GenerateAccessToken(username string) (string, error) {
+	expirationTime := time.Now().Add(15 * time.Minute) // Adjust the expiration time as needed
+
+	claims := &Claims{
+		Username: username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(SecretKey)
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
+}
+
+// ValidateAccessToken validates an access token
+func ValidateAccessToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return SecretKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	return claims, nil
+}
+

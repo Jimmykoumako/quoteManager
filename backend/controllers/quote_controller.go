@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"api/logger"
 )
 
 // GetQuotes returns all quotes
@@ -59,7 +60,7 @@ func SearchQuotes(c *gin.Context) {
 
 // AddQuote adds a new quote
 func AddQuote(c *gin.Context) {
-	fmt.Println("Welcome to controller.AddQuote")
+	logger.Log.Info("Welcome to controller.AddQuote")
 	var newQuote models.Quote
 
 	// Bind JSON request body to Quote model
@@ -92,7 +93,7 @@ func AddQuote(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, addedQuote)
-	fmt.Println("Bye from controller.AddQuote")
+	logger.Log.Info("Bye from controller.AddQuote")
 }
 
 // UpdateQuote updates an existing quote by ID

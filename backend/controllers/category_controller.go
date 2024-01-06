@@ -1,11 +1,10 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"strconv"
-
+	"api/logger"
 	"github.com/gin-gonic/gin"
 	"api/database"
 )
@@ -14,7 +13,7 @@ import (
 
 // CreateCategory creates a new category in the database
 func CreateCategory(c *gin.Context) {
-	fmt.Println("Welcome to controllers.CreateCategory")
+	logger.Log.Info("Welcome to controllers.CreateCategory")
 
 	var input database.CategoryInput
 
@@ -47,7 +46,7 @@ func CreateCategory(c *gin.Context) {
 
 // GetCategories returns a list of all categories from the database
 func GetCategories(c *gin.Context) {
-	fmt.Println("Welcome to controllers.GetCategories")
+	logger.Log.Info("Welcome to controllers.GetCategories")
 
 	// Call the model function to get all categories
 	categories, err := database.GetCategories()
@@ -61,7 +60,7 @@ func GetCategories(c *gin.Context) {
 
 // GetCategoryByID returns a category with the specified ID from the database
 func GetCategoryByID(c *gin.Context) {
-	fmt.Println("Welcome to controllers.GetCategoryByID")
+	logger.Log.Info("Welcome to controllers.GetCategoryByID")
 
 	categoryID := c.Param("id")
 
@@ -84,7 +83,7 @@ func GetCategoryByID(c *gin.Context) {
 
 // UpdateCategory updates an existing category in the database
 func UpdateCategory(c *gin.Context) {
-	fmt.Println("Welcome to controllers.UpdateCategory")
+	logger.Log.Info("Welcome to controllers.UpdateCategory")
 
 	categoryID := c.Param("id")
 
@@ -119,7 +118,7 @@ func UpdateCategory(c *gin.Context) {
 
 // DeleteCategory deletes a category with the specified ID from the database
 func DeleteCategory(c *gin.Context) {
-	fmt.Println("Welcome to controllers.DeleteCategory")
+	logger.Log.Info("Welcome to controllers.DeleteCategory")
 
 	categoryID := c.Param("id")
 

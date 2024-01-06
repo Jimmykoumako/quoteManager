@@ -1,10 +1,10 @@
-// database/tag.go
+// database/tag_db.go
 package database
 
 import (
-	"fmt"
 	"errors"
 	"api/models"
+	"api/logger"
 )
 
 // TagInput represents the input for creating or updating a tag
@@ -14,7 +14,7 @@ type TagInput struct {
 
 // GetTags returns a list of all tags from the database
 func GetTags() ([]models.Tag, error) {
-	fmt.Println("Welcome to database.GetTags")
+	logger.Log.Info("Welcome to database.GetTags")
 
 	if db == nil {
 		return nil, errors.New("nil database provided")
@@ -27,13 +27,13 @@ func GetTags() ([]models.Tag, error) {
 		return nil, result.Error
 	}
 
-	fmt.Println("Bye from database.GetTags")
+	logger.Log.Info("Bye from database.GetTags")
 	return tags, nil
 }
 
 // GetTagByID returns a tag with the specified ID from the database
 func GetTagByID(id uint) (models.Tag, error) {
-	fmt.Println("Welcome to database.GetTagByID")
+	logger.Log.Info("Welcome to database.GetTagByID")
 
 	if db == nil {
 		return models.Tag{}, errors.New("nil database provided")
@@ -46,13 +46,13 @@ func GetTagByID(id uint) (models.Tag, error) {
 		return models.Tag{}, result.Error
 	}
 
-	fmt.Println("Bye from database.GetTagByID")
+	logger.Log.Info("Bye from database.GetTagByID")
 	return tag, nil
 }
 
 // CreateTag creates a new tag in the database
 func CreateTag(input TagInput) (models.Tag, error) {
-	fmt.Println("Welcome to database.CreateTag")
+	logger.Log.Info("Welcome to database.CreateTag")
 
 	if db == nil {
 		return models.Tag{}, errors.New("nil database provided")
@@ -76,13 +76,13 @@ func CreateTag(input TagInput) (models.Tag, error) {
 		return models.Tag{}, result.Error
 	}
 
-	fmt.Println("Bye from database.CreateTag")
+	logger.Log.Info("Bye from database.CreateTag")
 	return newTag, nil
 }
 
 // UpdateTag updates an existing tag in the database
 func UpdateTag(id uint, input TagInput) (models.Tag, error) {
-	fmt.Println("Welcome to database.UpdateTag")
+	logger.Log.Info("Welcome to database.UpdateTag")
 
 	if db == nil {
 		return models.Tag{}, errors.New("nil database provided")
@@ -106,13 +106,13 @@ func UpdateTag(id uint, input TagInput) (models.Tag, error) {
 		return models.Tag{}, result.Error
 	}
 
-	fmt.Println("Bye from database.UpdateTag")
+	logger.Log.Info("Bye from database.UpdateTag")
 	return existingTag, nil
 }
 
 // DeleteTag deletes a tag with the specified ID from the database
 func DeleteTag(id uint) error {
-	fmt.Println("Welcome to database.DeleteTag")
+	logger.Log.Info("Welcome to database.DeleteTag")
 
 	if db == nil {
 		return errors.New("nil database provided")
@@ -133,6 +133,6 @@ func DeleteTag(id uint) error {
 		return result.Error
 	}
 
-	fmt.Println("Bye from database.DeleteTag")
+	logger.Log.Info("Bye from database.DeleteTag")
 	return nil
 }

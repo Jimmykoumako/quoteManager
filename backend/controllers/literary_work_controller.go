@@ -2,19 +2,19 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"api/database"
+	"api/logger"
 )
 
 
 
 // CreateLiteraryWork creates a new literary work in the database
 func CreateLiteraryWork(c *gin.Context) {
-	fmt.Println("Welcome to controllers.CreateLiteraryWork")
+	logger.Log.Info("Welcome to controllers.CreateLiteraryWork")
 
 	var input database.LiteraryWorkInput
 
@@ -36,7 +36,7 @@ func CreateLiteraryWork(c *gin.Context) {
 
 // GetLiteraryWorks returns a list of all literary works from the database
 func GetLiteraryWorks(c *gin.Context) {
-	fmt.Println("Welcome to controllers.GetLiteraryWorks")
+	logger.Log.Info("Welcome to controllers.GetLiteraryWorks")
 
 	// Call the model function to get all literary works
 	literaryWorks, err := database.GetLiteraryWorks()
@@ -50,7 +50,7 @@ func GetLiteraryWorks(c *gin.Context) {
 
 // GetLiteraryWorkByID returns a literary work with the specified ID from the database
 func GetLiteraryWorkByID(c *gin.Context) {
-	fmt.Println("Welcome to controllers.GetLiteraryWorkByID")
+	logger.Log.Info("Welcome to controllers.GetLiteraryWorkByID")
 
 	literaryWorkID := c.Param("id")
 
@@ -73,7 +73,7 @@ func GetLiteraryWorkByID(c *gin.Context) {
 
 // UpdateLiteraryWork updates an existing literary work in the database
 func UpdateLiteraryWork(c *gin.Context) {
-	fmt.Println("Welcome to controllers.UpdateLiteraryWork")
+	logger.Log.Info("Welcome to controllers.UpdateLiteraryWork")
 
 	literaryWorkID := c.Param("id")
 
@@ -104,7 +104,7 @@ func UpdateLiteraryWork(c *gin.Context) {
 
 // DeleteLiteraryWork deletes a literary work with the specified ID from the database
 func DeleteLiteraryWork(c *gin.Context) {
-	fmt.Println("Welcome to controllers.DeleteLiteraryWork")
+	logger.Log.Info("Welcome to controllers.DeleteLiteraryWork")
 
 	literaryWorkID := c.Param("id")
 

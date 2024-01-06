@@ -2,10 +2,10 @@ package database
 
 import (
 	"api/models"
-	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
+	"api/logger"
 )
 
 var db *gorm.DB
@@ -19,7 +19,7 @@ func InitDB() {
 	}
 	db = dbi
 
-	fmt.Println("Connected to PostgreSQL...")
+	logger.Log.Info("Connected to PostgreSQL...")
 
 	// Auto-migrate the schema
 	db.AutoMigrate(&models.Like{}, &models.Folder{}, &models.LiteraryWork{}, &models.Feedback{}, &models.Tag{}, &models.Category{}, &models.User{}, &models.Quote{})

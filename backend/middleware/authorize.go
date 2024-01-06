@@ -45,7 +45,7 @@ func Authorize() gin.HandlerFunc {
 }
 
 func isAuthenticated(c *gin.Context) bool {
-	fmt.Printf("Wlecome to isAuthenticated")
+	fmt.Printf("Welcome to isAuthenticated")
 	// Check if the user is authenticated (e.g., verify token or session)
 	// Return true if authenticated, false otherwise
 	// Implement your own authentication logic

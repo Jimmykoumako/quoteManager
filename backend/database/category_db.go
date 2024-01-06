@@ -3,10 +3,11 @@ package database
 
 import (
 	"errors"
-	"fmt"
 	"api/models"
 	"log"
+	"api/logger"
 )
+
 
 // CategoryInput represents the input for creating a new category
 type CategoryInput struct {
@@ -15,7 +16,7 @@ type CategoryInput struct {
 
 // CreateCategory creates a new category in the database
 func CreateCategory(input CategoryInput) (models.Category, error) {
-	fmt.Println("Welcome to database.CreateCategory")
+	logger.Log.Info("Welcome to database.CreateCategory")
 
 	if db == nil {
 		return models.Category{}, errors.New("nil database provided")
@@ -35,13 +36,13 @@ func CreateCategory(input CategoryInput) (models.Category, error) {
 		return models.Category{}, result.Error
 	}
 
-	fmt.Println("Bye from models.CreateCategory")
+	logger.Log.Info("Bye from models.CreateCategory")
 	return newCategory, nil
 }
 
 // GetCategories returns a list of all categories from the database
 func GetCategories() ([]models.Category, error) {
-	fmt.Println("Welcome to database.GetCategories")
+	logger.Log.Info("Welcome to database.GetCategories")
 
 	if db == nil {
 		return nil, errors.New("nil database provided")
@@ -57,13 +58,13 @@ func GetCategories() ([]models.Category, error) {
 		return nil, result.Error
 	}
 
-	fmt.Println("Bye from models.GetCategories")
+	logger.Log.Info("Bye from models.GetCategories")
 	return categories, nil
 }
 
 // GetCategoryByID returns a category with the specified ID from the database
 func GetCategoryByID(id uint) (models.Category, error) {
-	fmt.Println("Welcome to database.GetCategoryByID")
+	logger.Log.Info("Welcome to database.GetCategoryByID")
 
 	if db == nil {
 		return models.Category{}, errors.New("nil database provided")
@@ -79,13 +80,13 @@ func GetCategoryByID(id uint) (models.Category, error) {
 		return models.Category{}, result.Error
 	}
 
-	fmt.Println("Bye from models.GetCategoryByID")
+	logger.Log.Info("Bye from models.GetCategoryByID")
 	return category, nil
 }
 
 // UpdateCategory updates an existing category in the database
 func UpdateCategory(id uint, input CategoryInput) (models.Category, error) {
-	fmt.Println("Welcome to database.UpdateCategory")
+	logger.Log.Info("Welcome to database.UpdateCategory")
 
 	if db == nil {
 		return models.Category{}, errors.New("nil database provided")
@@ -112,13 +113,13 @@ func UpdateCategory(id uint, input CategoryInput) (models.Category, error) {
 		return models.Category{}, result.Error
 	}
 
-	fmt.Println("Bye from database.UpdateCategory")
+	logger.Log.Info("Bye from database.UpdateCategory")
 	return existingCategory, nil
 }
 
 // DeleteCategory deletes a category with the specified ID from the database
 func DeleteCategory(id uint) error {
-	fmt.Println("Welcome to database.DeleteCategory")
+	logger.Log.Info("Welcome to database.DeleteCategory")
 
 	if db == nil {
 		return errors.New("nil database provided")
@@ -142,6 +143,6 @@ func DeleteCategory(id uint) error {
 		return result.Error
 	}
 
-	fmt.Println("Bye from models.DeleteCategory")
+	logger.Log.Info("Bye from models.DeleteCategory")
 	return nil
 }

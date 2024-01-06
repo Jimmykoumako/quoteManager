@@ -3,8 +3,8 @@ package database
 
 import (
 	"errors"
-	"fmt"
 	"api/models"
+	"api/logger"
 )
 
 // LiteraryWorkInput represents the input for creating or updating a literary work
@@ -15,7 +15,7 @@ type LiteraryWorkInput struct {
 
 // CreateLiteraryWork creates a new literary work in the database
 func CreateLiteraryWork(input LiteraryWorkInput) (models.LiteraryWork, error) {
-	fmt.Println("Welcome to database.CreateLiteraryWork")
+	logger.Log.Info("Welcome to database.CreateLiteraryWork")
 
 	if db == nil {
 		return models.LiteraryWork{}, errors.New("nil database provided")
@@ -35,13 +35,13 @@ func CreateLiteraryWork(input LiteraryWorkInput) (models.LiteraryWork, error) {
 		return models.LiteraryWork{}, result.Error
 	}
 
-	fmt.Println("Bye from database.CreateLiteraryWork")
+	logger.Log.Info("Bye from database.CreateLiteraryWork")
 	return newLiteraryWork, nil
 }
 
 // GetLiteraryWorks returns a list of all literary works from the database
 func GetLiteraryWorks() ([]models.LiteraryWork, error) {
-	fmt.Println("Welcome to database.GetLiteraryWorks")
+	logger.Log.Info("Welcome to database.GetLiteraryWorks")
 
 	if db == nil {
 		return nil, errors.New("nil database provided")
@@ -56,13 +56,13 @@ func GetLiteraryWorks() ([]models.LiteraryWork, error) {
 		return nil, result.Error
 	}
 
-	fmt.Println("Bye from database.GetLiteraryWorks")
+	logger.Log.Info("Bye from database.GetLiteraryWorks")
 	return literaryWorks, nil
 }
 
 // GetLiteraryWorkByID returns a literary work with the specified ID from the database
 func GetLiteraryWorkByID(id uint) (models.LiteraryWork, error) {
-	fmt.Println("Welcome to database.GetLiteraryWorkByID")
+	logger.Log.Info("Welcome to database.GetLiteraryWorkByID")
 
 	if db == nil {
 		return models.LiteraryWork{}, errors.New("nil database provided")
@@ -77,13 +77,13 @@ func GetLiteraryWorkByID(id uint) (models.LiteraryWork, error) {
 		return models.LiteraryWork{}, result.Error
 	}
 
-	fmt.Println("Bye from database.GetLiteraryWorkByID")
+	logger.Log.Info("Bye from database.GetLiteraryWorkByID")
 	return literaryWork, nil
 }
 
 // UpdateLiteraryWork updates an existing literary work in the database
 func UpdateLiteraryWork(id uint, input LiteraryWorkInput) (models.LiteraryWork, error) {
-	fmt.Println("Welcome to database.UpdateLiteraryWork")
+	logger.Log.Info("Welcome to database.UpdateLiteraryWork")
 
 	if db == nil {
 		return models.LiteraryWork{}, errors.New("nil database provided")
@@ -109,13 +109,13 @@ func UpdateLiteraryWork(id uint, input LiteraryWorkInput) (models.LiteraryWork, 
 		return models.LiteraryWork{}, result.Error
 	}
 
-	fmt.Println("Bye from database.UpdateLiteraryWork")
+	logger.Log.Info("Bye from database.UpdateLiteraryWork")
 	return existingLiteraryWork, nil
 }
 
 // DeleteLiteraryWork deletes a literary work with the specified ID from the database
 func DeleteLiteraryWork(id uint) error {
-	fmt.Println("Welcome to database.DeleteLiteraryWork")
+	logger.Log.Info("Welcome to database.DeleteLiteraryWork")
 
 	if db == nil {
 		return errors.New("nil database provided")
@@ -137,6 +137,6 @@ func DeleteLiteraryWork(id uint) error {
 		return result.Error
 	}
 
-	fmt.Println("Bye from database.DeleteLiteraryWork")
+	logger.Log.Info("Bye from database.DeleteLiteraryWork")
 	return nil
 }

@@ -39,3 +39,5 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 func (u *User) CheckPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 }
+
+

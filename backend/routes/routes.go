@@ -51,8 +51,14 @@ func applyGlobalMiddlewares(r *gin.Engine) {
 func definePublicRoutes(r *gin.Engine) {
 	publicGroup := r.Group("/api/public")
 	{
-		publicGroup.POST("/users/register", controllers.RegisterUser)
+		// publicGroup.POST("/users/register", controllers.RegisterUser)
+		publicGroup.POST("/users/check-username", controllers.CheckUsernameAvailability)
+		publicGroup.POST("/users/register/basic-info", controllers.RegisterBasicUserInfo)
+		publicGroup.POST("/users/register/additional-info", controllers.RegisterAdditionalUserInfo)
+		publicGroup.POST("/users/register/finalize", controllers.RegisterFinalize)
+
 		publicGroup.POST("/users/login", controllers.LoginUser)
+		publicGroup.POST("/refresh", controllers.RefreshToken)
 		// Add other public routes as needed
 	}
 }
@@ -100,6 +106,10 @@ func defineUserRoutes(protectedGroup *gin.RouterGroup) {
 		userGroup.GET("/:id", controllers.GetUserByID)
 		userGroup.PUT("/:id", controllers.UpdateUser)
 		userGroup.DELETE("/:id", controllers.DeleteUser)
+		userGroup.GET("/:id/quotes", controllers.GetUserQuotes)
+		userGroup.GET("/:id/folders", controllers.GetUserFolders)
+		userGroup.GET("/:id/profile", controllers.GetUserProfile)
+		userGroup.PUT("/:id/profile", controllers.UpdateUserProfile)
 		// Add other user-related routes as needed
 
 		// Example: Get user's quotes
@@ -109,6 +119,18 @@ func defineUserRoutes(protectedGroup *gin.RouterGroup) {
 		userGroup.GET("/:id/folders", controllers.GetUserFolders)
 	}
 }
+
+// defineUserProfileRoutes defines routes related to UserProfile
+func defineUserProfileRoutes(protectedGroup *gin.RouterGroup) {
+	profileGroup := protectedGroup.Group("/user_profiles")
+    {
+        profileGroup.GET("/:id", controllers.GetUserProfileByID)
+        profileGroup.POST("/", controllers.CreateUserProfile)
+        profileGroup.PUT("/:id", controllers.UpdateUserProfile)
+        profileGroup.DELETE("/:id", controllers.DeleteUserProfile)
+    }
+}
+
 
 // defineFeedbackRoutes defines routes related to feedback
 func defineFeedbackRoutes(protectedGroup *gin.RouterGroup) {

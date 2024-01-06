@@ -2,20 +2,18 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
-
+	"api/logger"
 	"github.com/gin-gonic/gin"
 	"api/database"
 )
 
 
-
 // GetTags returns a list of all tags from the database
 func GetTags(c *gin.Context) {
-	fmt.Println("Welcome to controllers.GetTags")
+	logger.Log.Info("Welcome to controllers.GetTags")
 
 	tags, err := database.GetTags()
 	if err != nil {
@@ -28,7 +26,7 @@ func GetTags(c *gin.Context) {
 
 // GetTagByID returns a tag with the specified ID from the database
 func GetTagByID(c *gin.Context) {
-	fmt.Println("Welcome to controllers.GetTagByID")
+	logger.Log.Info("Welcome to controllers.GetTagByID")
 
 	tagID := c.Param("id")
 
@@ -49,7 +47,7 @@ func GetTagByID(c *gin.Context) {
 
 // CreateTag creates a new tag in the database
 func CreateTag(c *gin.Context) {
-	fmt.Println("Welcome to controllers.CreateTag")
+	logger.Log.Info("Welcome to controllers.CreateTag")
 
 	var input database.TagInput
 
@@ -73,7 +71,7 @@ func CreateTag(c *gin.Context) {
 
 // UpdateTag updates an existing tag in the database
 func UpdateTag(c *gin.Context) {
-	fmt.Println("Welcome to controllers.UpdateTag")
+	logger.Log.Info("Welcome to controllers.UpdateTag")
 
 	tagID := c.Param("id")
 
@@ -105,7 +103,7 @@ func UpdateTag(c *gin.Context) {
 
 // DeleteTag deletes a tag with the specified ID from the database
 func DeleteTag(c *gin.Context) {
-	fmt.Println("Welcome to controllers.DeleteTag")
+	logger.Log.Info("Welcome to controllers.DeleteTag")
 
 	tagID := c.Param("id")
 

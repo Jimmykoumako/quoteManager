@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"api/logger"
 )
 
 // In-memory storage for demonstration purposes
@@ -146,7 +147,7 @@ func validateFeedback(feedback models.Feedback) error {
 func parseQuoteID(quoteID string) uint {
 	parsedID, err := strconv.ParseUint(quoteID, 10, 64)
 	if err != nil {
-		fmt.Println("Error parsing quote ID:", err)
+		logger.Log.Info("Error parsing quote ID:", err)
 	}
 	return uint(parsedID)
 }

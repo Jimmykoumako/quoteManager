@@ -2,8 +2,8 @@ package database
 
 import (
 	"api/models"
-	"fmt"
 	"gorm.io/gorm"
+	"api/logger"
 )
 
 // SetDB sets the Gorm database connection
@@ -31,7 +31,7 @@ func GetQuoteByID(quoteID uint) (models.Quote, error) {
 
 // AddQuote adds a new quote to the database
 func AddQuote(newQuote models.Quote) (models.Quote, error) {
-	fmt.Println("Welcome to controller.AddQuote")
+	logger.Log.Info("Welcome to controller.AddQuote")
 	// Validate required fields
 	if newQuote.Text == "" || newQuote.Author == "" {
 		return models.Quote{}, ErrInvalidPayload
@@ -57,7 +57,7 @@ func AddQuote(newQuote models.Quote) (models.Quote, error) {
 		return models.Quote{}, err
 	}
 
-	fmt.Println("Welcome to controller.AddQuote")
+	logger.Log.Info("Welcome to controller.AddQuote")
 	return newQuote, nil
 }
 
