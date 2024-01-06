@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 )
 
 // AuthenticateUser authenticates a user based on login credentials
@@ -39,11 +40,15 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	// Implement logic to validate and register the new user in the database
-	newUser, err := database.RegisterUser(userInput)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to register user"})
-		return
-	}
+    newUser, err := database.RegisterUser(userInput)
+    if err != nil {
+        if strings.Contains(err.Error(), "username already in use") {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Username already in use"})
+            return
+        }
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to register user"})
+        return
+    }
 
 	c.JSON(http.StatusCreated, newUser)
 

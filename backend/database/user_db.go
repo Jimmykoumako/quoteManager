@@ -25,6 +25,13 @@ func RegisterUser(input UserInput) (models.User, error) {
 		return models.User{}, errors.New("nil database provided")
 	}
 
+	// Check if the username already exists in the database
+	var existingUser models.User
+	if err := db.Where("username = ?", input.Username).First(&existingUser).Error; err == nil {
+		// Username already exists, return an error
+		return models.User{}, errors.New("username already in use")
+	}
+
 	newUser := models.User{
 		Username: input.Username,
 		Password: input.Password,
