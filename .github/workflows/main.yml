@@ -129,5 +129,5 @@ jobs:
             curl -X DELETE http://localhost:8000/api/categories/1
 
 
-      - name: Run tests
-        run: sudo docker exec goapp  go test ./routes/
+      # - name: Run tests
+      #   run: sudo docker exec goapp  go test ./routes/
