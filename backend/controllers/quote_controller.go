@@ -40,6 +40,23 @@ func GetQuoteByID(c *gin.Context) {
 	c.JSON(http.StatusOK, quote)
 }
 
+// SearchQuotes searches and filters quotes based on query parameters
+func SearchQuotes(c *gin.Context) {
+    // Extract query parameters
+    searchQuery := c.Query("search")
+    author := c.Query("author")
+    category := c.Query("category")
+
+    // Implement logic to fetch and filter quotes based on the query parameters
+    quotes, err := database.SearchAndFilterQuotes(searchQuery, author, category)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch quotes"})
+        return
+    }
+
+    c.JSON(http.StatusOK, quotes)
+}
+
 // AddQuote adds a new quote
 func AddQuote(c *gin.Context) {
 	fmt.Println("Welcome to controller.AddQuote")

@@ -85,6 +85,7 @@ func defineQuoteRoutes(protectedGroup *gin.RouterGroup) {
 	quoteGroup := protectedGroup.Group("/quotes")
 	{
 		quoteGroup.GET("/", controllers.GetQuotes)
+		quoteGroup.GET("/search", controllers.SearchQuotes) 
 		quoteGroup.GET("/:id", controllers.GetQuoteByID)
 		quoteGroup.POST("/", controllers.AddQuote)
 		quoteGroup.PUT("/:id", controllers.UpdateQuote)
