@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
+	"api/database"
 )
 
 var DB *gorm.DB
@@ -17,7 +18,7 @@ func GetFoldersForUser(c *gin.Context) {
 
 	// Implement logic to fetch folders for the authenticated user from the database
 	var folders []models.Folder
-	if err := models.DB.Where("UserID = ?", userID).Find(&folders).Error; err != nil {
+	if err := database.GetDB().Where("UserID = ?", userID).Find(&folders).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -32,7 +33,7 @@ func GetFolderByID(c *gin.Context) {
 
 	// Implement logic to fetch a folder by ID from the database
 	var folder models.Folder
-	if err := models.DB.First(&folder, folderID).Error; err != nil {
+	if err := database.GetDB().First(&folder, folderID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Folder not found"})
 		return
 	}
@@ -63,7 +64,7 @@ func CreateFolder(c *gin.Context) {
 	folder.UserID = userIDUint
 
 	// Example using Gorm
-	if err := models.DB.Create(&folder).Error; err != nil {
+	if err := database.GetDB().Create(&folder).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -84,7 +85,7 @@ func UpdateFolder(c *gin.Context) {
 	}
 
 	// Example using Gorm
-	if err := models.DB.Model(&models.Folder{}).Where("id = ? AND UserID = ?", folderID, utils.GetUserIDFromContext(c)).Updates(&updatedFolder).Error; err != nil {
+	if err := database.GetDB().Model(&models.Folder{}).Where("id = ? AND UserID = ?", folderID, utils.GetUserIDFromContext(c)).Updates(&updatedFolder).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -99,7 +100,7 @@ func DeleteFolder(c *gin.Context) {
 
 	// Implement logic to delete a folder by ID from the database
 	// Example using Gorm
-	if err := models.DB.Where("id = ? AND UserID = ?", folderID, utils.GetUserIDFromContext(c)).Delete(&models.Folder{}).Error; err != nil {
+	if err := database.GetDB().Where("id = ? AND UserID = ?", folderID, utils.GetUserIDFromContext(c)).Delete(&models.Folder{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

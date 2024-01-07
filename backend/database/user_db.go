@@ -1,7 +1,6 @@
 package database
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"api/models"
 	"errors"
 	"gorm.io/gorm"
@@ -56,18 +55,14 @@ func UsernameExists(username string) (bool, error) {
 // SaveBasicUserInfoToDatabase saves basic user information to the database
 func SaveBasicUserInfoToDatabase(username, password string) error {
 	log.Printf("Welcome to SaveBasicUserInfoToDatabase ")
-    // Hash the password before saving it to the database
-    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-    if err != nil {
-        log.Printf("SaveBasicUserInfoToDatabase: Error hashing password: %v", err)
-        return err
-    }
 
     // Create input for RegisterUserAndProfile
     input := models.User{
         Username:  username,
-        Password:  string(hashedPassword),
+        Password:  password,
     }
+
+	input.BeforeCreate(db)
 
 	log.Printf("About to save the new user")
 	// Save the new profile to the database
@@ -255,3 +250,11 @@ func GetUserProfile(userID string) (models.UserProfile, error) {
 
     return userProfile, nil
 }
+
+// // SaveUserToDatabase saves a user to the database
+// func SaveUserToDatabase(user *User) error {
+// 	return db.Clauses(clause.OnConflict{
+// 		Columns: []clause.Column{{Name: "username"}},
+// 		DoUpdates: clause.AssignmentColumns([]string{"password", "updated_at"}),
+// 	}).Create(user).Error
+// }

@@ -30,6 +30,7 @@ func VerifyJWT(tokenString string) bool {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})
-
+	log.Println(err == nil)
+	log.Println(token.Valid)
 	return err == nil && token.Valid
 }

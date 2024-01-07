@@ -119,7 +119,7 @@ func RegisterAdditionalUserInfo(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-
+	
 
     // Save additional user information to the database (replace with your database logic)
     if err := database.SaveAdditionalUserInfoToDatabase(userInput.Username, userInput.Email, userInput.FirstName, userInput.LastName, userInput.Birthdate); err != nil {
