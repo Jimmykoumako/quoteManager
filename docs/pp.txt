@@ -1,0 +1,1874 @@
+--- File: backend/controllers/auth_controller.go ---
+// File: controllers/auth_controller.go
+
+package controllers
+
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+// Login simulates the login process
+func Login(c *gin.Context) {
+	
+
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+}
+
+
+
+--- File: backend/controllers/feedback_controller.go ---
+// controllers/feedback_controller.go
+
+package controllers
+
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"api/models"
+	"strconv"
+	"math/rand"
+	"fmt"
+)
+
+// In-memory storage for demonstration purposes
+var feedbackStorage = make(map[string]models.Feedback)
+
+// GetFeedbackByID returns a specific feedback by ID
+func GetFeedbackByID(c *gin.Context) {
+	// Extract feedback ID from the URL parameter
+	feedbackID := c.Param("id")
+
+	// Fetch feedback from the in-memory storage
+	feedback, found := feedbackStorage[feedbackID]
+	if !found {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Feedback not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, feedback)
+}
+
+// GetAllFeedback returns all feedback entries
+func GetAllFeedback(c *gin.Context) {
+	// Convert feedback map to a slice
+	var feedbackList []models.Feedback
+	for _, v := range feedbackStorage {
+		feedbackList = append(feedbackList, v)
+	}
+
+	c.JSON(http.StatusOK, feedbackList)
+}
+
+// AddFeedbackForQuote adds feedback for a specific quote
+func AddFeedbackForQuote(c *gin.Context) {
+	// Extract quote ID from the URL parameter
+	quoteID := c.Param("quoteId")
+
+	// Implement logic to add feedback for a quote to the in-memory storage
+	var feedback models.Feedback
+
+	// Bind the request body to the feedback model
+	if err := c.ShouldBindJSON(&feedback); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate feedback data
+	if feedback.Rating < 1 || feedback.Rating > 5 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid rating. Rating must be between 1 and 5."})
+		return
+	}
+
+	if len(feedback.Comment) > 500 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment is too long. Maximum length is 500 characters."})
+		return
+	}
+
+	if feedback.Comment == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment cannot be empty."})
+		return
+	}
+
+	// Set the QuoteID based on the parameter
+	// Convert string to uint
+	quoteIDUint, err := strconv.ParseUint(quoteID, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quote ID."})
+		return
+	}
+	feedback.QuoteID = uint(quoteIDUint)
+
+	// Save feedback to the in-memory storage
+	feedbackID := generateFeedbackID()
+	feedbackStorage[feedbackID] = feedback
+
+	// Parse feedbackID to uint and assign it to feedback.ID
+	parsedID, err := strconv.ParseUint(feedbackID, 10, 64)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	feedback.ID = uint(parsedID)
+
+	c.JSON(http.StatusCreated, feedback)
+}
+// generateFeedbackID generates a unique ID for feedback (for demonstration purposes)
+func generateFeedbackID() string {
+	// In a real-world scenario, you would use a more sophisticated method to generate unique IDs
+	return "fb" + randomString(6)
+}
+
+// randomString generates a random string of a specified length (for demonstration purposes)
+func randomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(result)
+}
+
+
+--- File: backend/controllers/folder_controller.go ---
+package controllers
+
+import (
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm" 
+	"net/http"
+	"api/models"
+	"api/utils"
+)
+
+var DB *gorm.DB
+
+// GetFoldersForUser returns all folders for the authenticated user
+func GetFoldersForUser(c *gin.Context) {
+	// For demonstration purposes, let's assume authentication is done and the user ID is available
+	userID := utils.GetUserIDFromContext(c) // Replace with actual user ID retrieval
+
+	// Implement logic to fetch folders for the authenticated user from the database
+	var folders []models.Folder
+	if err := models.DB.Where("UserID = ?", userID).Find(&folders).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, folders)
+}
+
+// GetFolderByID returns a specific folder by ID
+func GetFolderByID(c *gin.Context) {
+	// Extract folder ID from the URL parameter
+	folderID := c.Param("id")
+
+	// Implement logic to fetch a folder by ID from the database
+	var folder models.Folder
+	if err := models.DB.First(&folder, folderID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Folder not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, folder)
+}
+
+/// CreateFolder creates a new folder
+func CreateFolder(c *gin.Context) {
+	// For demonstration purposes, let's assume authentication is done and the user ID is available
+	userID := utils.GetUserIDFromContext(c)
+
+	// Convert userID to uint if needed
+	userIDUint, err := utils.ConvertUserIDToUint(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// Implement logic to create a new folder
+	var folder models.Folder
+	if err := c.ShouldBindJSON(&folder); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Set the user ID for the folder
+	folder.UserID = userIDUint
+
+	// Example using Gorm
+	if err := models.DB.Create(&folder).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, folder)
+}
+
+// UpdateFolder updates an existing folder by ID
+func UpdateFolder(c *gin.Context) {
+	// Extract folder ID from the URL parameter
+	folderID := c.Param("id")
+
+	// Implement logic to update a folder by ID in the database
+	var updatedFolder models.Folder
+	if err := c.ShouldBindJSON(&updatedFolder); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Example using Gorm
+	if err := models.DB.Model(&models.Folder{}).Where("id = ? AND UserID = ?", folderID, utils.GetUserIDFromContext(c)).Updates(&updatedFolder).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedFolder)
+}
+
+// DeleteFolder deletes a folder by ID
+func DeleteFolder(c *gin.Context) {
+	// Extract folder ID from the URL parameter
+	folderID := c.Param("id")
+
+	// Implement logic to delete a folder by ID from the database
+	// Example using Gorm
+	if err := models.DB.Where("id = ? AND UserID = ?", folderID, utils.GetUserIDFromContext(c)).Delete(&models.Folder{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Folder deleted successfully"})
+}
+
+
+--- File: backend/controllers/quote_controller.go ---
+package controllers
+
+import (
+	"github.com/gin-gonic/gin"
+	"fmt"
+	"net/http"
+	"api/models"
+	"api/database"
+	"strconv"
+)
+
+// GetQuotes returns all quotes
+func GetQuotes(c *gin.Context) {
+	quotes, err := database.GetQuotes()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch quotes"})
+		return
+	}
+
+	c.JSON(http.StatusOK, quotes)
+}
+
+// GetQuoteByID returns a specific quote by ID
+func GetQuoteByID(c *gin.Context) {
+	quoteID := c.Param("id")
+
+	// Convert quoteID to uint
+	quoteIDUint, err := convertToUint(quoteID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quote ID"})
+		return
+	}
+
+	quote, err := database.GetQuoteByID(quoteIDUint)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch the quote"})
+		return
+	}
+
+	c.JSON(http.StatusOK, quote)
+}
+
+// AddQuote adds a new quote
+func AddQuote(c *gin.Context) {
+	var newQuote models.Quote
+
+	// Bind JSON request body to Quote model
+	if err := c.ShouldBindJSON(&newQuote); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Add the new quote to the database
+	addedQuote, err := database.AddQuote(newQuote)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add the quote"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, addedQuote)
+}
+
+// UpdateQuote updates an existing quote by ID
+func UpdateQuote(c *gin.Context) {
+	quoteID := c.Param("id")
+
+	// Convert quoteID to uint
+	quoteIDUint, err := convertToUint(quoteID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quote ID"})
+		return
+	}
+
+	var updatedQuote models.Quote
+
+	// Bind JSON request body to updated Quote model
+	if err := c.ShouldBindJSON(&updatedQuote); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Update the quote in the database
+	updatedQuote, err = database.UpdateQuote(quoteIDUint, updatedQuote)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update the quote"})
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedQuote)
+}
+
+// DeleteQuote deletes a quote by ID
+func DeleteQuote(c *gin.Context) {
+	quoteID := c.Param("id")
+
+	// Convert quoteID to uint
+	quoteIDUint, err := convertToUint(quoteID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid quote ID"})
+		return
+	}
+
+	// Delete the quote from the database
+	err = database.DeleteQuote(quoteIDUint)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the quote"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Quote deleted successfully"})
+}
+
+
+// convertToUint converts a string to uint.
+// It returns an error if the conversion fails or if the result is negative.
+func convertToUint(s string) (uint, error) {
+	converted, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, err
+	}
+
+	if converted < 0 {
+		return 0, fmt.Errorf("negative value not allowed: %d", converted)
+	}
+
+	return uint(converted), nil
+}
+
+
+
+--- File: backend/controllers/user_controller.go ---
+package controllers
+
+import (
+	"api/models"
+    "api/database"
+    "api/utils"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"fmt"
+)
+
+// AuthenticateUser authenticates a user based on login credentials
+func AuthenticateUser(input database.LoginInput) (models.User, error) {
+	// Retrieve user from the database by username
+	foundUser, err := database.GetUserByUsername(input.Username)
+	if err != nil {
+		// Handle the case where the user is not found
+		return models.User{}, err
+	}
+
+	// Check if the provided password matches the hashed password
+	if err := foundUser.CheckPassword(input.Password); err != nil {
+		// Handle the case where the password is incorrect
+		return models.User{}, err
+	}
+
+	return foundUser, nil
+}
+
+// RegisterUser registers a new user
+func RegisterUser(c *gin.Context) {
+    fmt.Println("Welcome to controller.RegisterUser")
+	var userInput database.UserInput
+
+	// Bind the JSON request body to the UserInput struct
+	if err := c.ShouldBindJSON(&userInput); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format"})
+		return
+	}
+
+	// Implement logic to validate and register the new user in the database
+	newUser, err := database.RegisterUser(userInput)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to register user"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, newUser)
+    fmt.Println("Bye from controller.RegisterUser")
+}
+
+
+// LoginUser authenticates a user and generates a JWT
+func LoginUser(c *gin.Context) {
+	var loginInput database.LoginInput
+
+	// Bind the JSON request body to the LoginInput struct
+	if err := c.ShouldBindJSON(&loginInput); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Implement logic to authenticate the user based on the login credentials
+	authUser, err := database.AuthenticateUser(loginInput)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+		return
+	}
+
+	// Generate JWT
+	token, err := utils.GenerateJWT(authUser.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	// Set the JWT as a cookie
+	c.SetCookie("jwt", token, 3600, "/", "", false, true)
+
+	// Respond with other data or a success message
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
+}
+
+
+
+// UpdateUser updates an existing user by ID
+func UpdateUser(c *gin.Context) {
+    // Extract user ID from the URL parameter
+    userID := c.Param("id")
+
+    // Parse the authenticated user ID from the context or token
+    authUserID, err := parseUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+
+    // Ensure that the authenticated user is updating their own details
+    if userID != authUserID {
+        c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+        return
+    }
+
+    // Implement logic to update a user by ID in the database
+    var updatedUser models.User
+    if err := c.ShouldBindJSON(&updatedUser); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Example using Gorm
+    result, err := database.UpdateUser(userID, updatedUser)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+        return
+    }
+
+    c.JSON(http.StatusOK, result)
+}
+
+// parseUserIDFromContext extracts the user ID from the request context
+func parseUserIDFromContext(c *gin.Context) (string, error) {
+    userIDValue, exists := c.Get("userID")
+    if !exists {
+        return "", fmt.Errorf("User ID not found in request context")
+    }
+
+    userID, ok := userIDValue.(string)
+    if !ok {
+        return "", fmt.Errorf("User ID is not of type string")
+    }
+
+    return userID, nil
+}
+
+
+
+
+
+
+
+// DeleteUser deletes a user by ID
+func DeleteUser(c *gin.Context) {
+    // Extract user ID from the URL parameter
+    userID := c.Param("id")
+
+
+    err := database.DeleteUser(userID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+
+
+// GetUserQuotes retrieves quotes for a specific user
+func GetUserQuotes(c *gin.Context) {
+	// Extract user ID from the URL parameter
+	userID := c.Param("id")
+
+	// Implement logic to fetch quotes for the specified user from the database
+	// Example using Gorm
+	quotes, err := database.GetQuotesByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, quotes)
+}
+
+// GetUserFolders retrieves folders for a specific user
+func GetUserFolders(c *gin.Context) {
+	// Extract user ID from the URL parameter
+	userID := c.Param("id")
+
+	// Implement logic to fetch folders for the specified user from the database
+	// Example using Gorm
+	folders, err := database.GetFoldersByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, folders)
+}
+
+
+// GetQuotesByUserID retrieves quotes for a specific user
+func GetQuotesByUserID(c *gin.Context) {
+    userID := c.Param("id")
+
+    quotes, err := database.GetQuotesByUserID(userID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, quotes)
+}
+
+// GetFoldersByUserID retrieves folders for a specific user
+func GetFoldersByUserID(c *gin.Context) {
+    userID := c.Param("id")
+
+    folders, err := database.GetFoldersByUserID(userID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, folders)
+}
+
+
+// GetUserByID retrieves a user by ID with associated quotes and folders
+func GetUserByID(c *gin.Context) {
+    userID := c.Param("id")
+
+    //var user models.User
+    result, err := database.GetUserByID(userID)
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, result)
+}
+
+--- File: backend/database/errors.go ---
+package database
+
+import "errors"
+
+var (
+	// ErrInvalidPayload is returned when the request payload is invalid
+	ErrInvalidPayload = errors.New("invalid request payload")
+)
+
+
+--- File: backend/database/init.go ---
+package database
+
+import (
+    "fmt"
+    "gorm.io/driver/postgres"
+    "gorm.io/gorm"
+    "os"
+    "api/models"
+)
+
+var db *gorm.DB
+
+// InitDB initializes the database connection
+func InitDB() {
+    connectionString := os.Getenv("DATABASE_URL")
+    dbi, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
+    if err != nil {
+        panic("Failed to connect to PostgreSQL")
+    }
+    db  = dbi
+
+	fmt.Println("Connected to PostgreSQL...")
+
+    // Auto-migrate the schema
+	db.AutoMigrate(&models.Like{}, &models.Folder{}, &models.LiteraryWork{}, &models.Feedback{}, &models.Tag{}, &models.Category{}, &models.User{}, &models.Quote{})
+
+}
+
+// CloseDB closes the database connection
+func CloseDB() {
+    sqlDB, err := db.DB()
+    if err != nil {
+        panic("Failed to get database connection")
+    }
+
+    sqlDB.Close()
+}
+
+
+--- File: backend/database/quote_db.go ---
+package database
+
+import (
+	"gorm.io/gorm"
+	"api/models"
+)
+
+
+
+// SetDB sets the Gorm database connection
+func SetDB(database *gorm.DB) {
+	db = database
+}
+
+// GetQuotes fetches all quotes from the database
+func GetQuotes() ([]models.Quote, error) {
+	var quotes []models.Quote
+	if err := db.Find(&quotes).Error; err != nil {
+		return nil, err
+	}
+	return quotes, nil
+}
+
+// GetQuoteByID fetches a specific quote by ID from the database
+func GetQuoteByID(quoteID uint) (models.Quote, error) {
+	var quote models.Quote
+	if err := db.First(&quote, quoteID).Error; err != nil {
+		return models.Quote{}, err
+	}
+	return quote, nil
+}
+
+// AddQuote adds a new quote to the database
+func AddQuote(newQuote models.Quote) (models.Quote, error) {
+	// Validate required fields
+	if newQuote.Text == "" || newQuote.Author == "" {
+		return models.Quote{}, ErrInvalidPayload
+	}
+
+	// Add the new quote to the database
+	if err := db.Create(&newQuote).Error; err != nil {
+		return models.Quote{}, err
+	}
+
+	return newQuote, nil
+}
+
+// UpdateQuote updates an existing quote by ID in the database
+func UpdateQuote(quoteID uint, updatedQuote models.Quote) (models.Quote, error) {
+	if err := db.First(&models.Quote{}, quoteID).Updates(updatedQuote).Error; err != nil {
+		return models.Quote{}, err
+	}
+	return updatedQuote, nil
+}
+
+// DeleteQuote deletes a quote by ID from the database
+func DeleteQuote(quoteID uint) error {
+	if err := db.Delete(&models.Quote{}, quoteID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+
+--- File: backend/database/user_db.go ---
+package database
+
+import (
+	"api/models"
+	"errors"
+    "fmt"
+)
+
+// UserInput represents the input data for user registration
+type UserInput struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// LoginInput represents the input data for user login
+type LoginInput struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// RegisterUser registers a new user in the database
+func RegisterUser(input UserInput) (models.User, error) {
+    fmt.Println("Welcome to models.RegisterUser")
+    if db == nil {
+		return models.User{}, errors.New("nil database provided")
+	}
+
+	newUser := models.User{
+		Username: input.Username,
+		Password: input.Password,
+	}
+
+	// Save newUser to the database (using Gorm or your preferred ORM)
+	result := db.Create(&newUser)
+    if result.Error != nil {
+        // Handle the error, for example:
+        return models.User{}, result.Error
+    }
+
+    fmt.Println("Bye from models.RegisterUser")
+	return newUser, nil
+}
+
+// AuthenticateUser authenticates a user based on login credentials
+func AuthenticateUser(input LoginInput) (models.User, error) {
+	// Retrieve user from the database by username
+	foundUser, err := GetUserByUsername(input.Username)
+	if err != nil {
+		// Handle the case where the user is not found or other database-related errors
+		return models.User{}, err
+	}
+
+	// Check if the provided password matches the hashed password
+	if err := foundUser.CheckPassword(input.Password); err != nil {
+		return models.User{}, err
+	}
+
+	return foundUser, nil
+}
+
+// GetUserByUsername retrieves a user from the database by username
+func GetUserByUsername(username string) (models.User, error) {
+	var user models.User
+
+	// Replace "db" with your Gorm db instance
+	result := db.Where("username = ?", username).First(&user)
+	if result.Error != nil {
+		// Handle specific cases, such as gorm.ErrRecordNotFound
+		return models.User{}, result.Error
+	}
+
+	return user, nil
+}
+
+// UpdateUser updates user details in the database
+func UpdateUser(userID string, updatedUser models.User) (models.User, error) {
+    // Replace "db" with your actual Gorm db instance
+    result := db.Model(&models.User{}).Where("id = ?", userID).Updates(updatedUser)
+    if result.Error != nil {
+        return models.User{}, result.Error
+    }
+
+    return updatedUser, nil
+}
+
+// DeleteUser deletes a user account and associated data
+func DeleteUser(userID string) error {
+    // Replace "db" with your actual Gorm db instance
+    result := db.Where("id = ?", userID).Delete(&models.User{})
+    if result.Error != nil {
+        return result.Error
+    }
+
+    // Delete associated quotes
+    result = db.Where("user_id = ?", userID).Delete(&models.Quote{})
+    if result.Error != nil {
+        return result.Error
+    }
+
+    // Delete associated folders
+    result = db.Where("user_id = ?", userID).Delete(&models.Folder{})
+    if result.Error != nil {
+        return result.Error
+    }
+
+    return nil
+}
+
+
+// GetUserByID retrieves a user by ID with associated quotes and folders
+func GetUserByID(userID string) (models.User, error) {
+    var user models.User
+    result := db.Preload("Quotes").Preload("Folders").First(&user, userID)
+    if result.Error != nil {
+        return models.User{}, result.Error
+    }
+    return user, nil
+}
+
+// GetQuotesByUserID retrieves quotes for a specific user by ID
+func GetQuotesByUserID(userID string) ([]models.Quote, error) {
+    // Implement logic to fetch quotes for the specified user from the database
+    // Example using Gorm
+    var quotes []models.Quote
+    result := db.Where("user_id = ?", userID).Find(&quotes)
+    if result.Error != nil {
+        return nil, result.Error
+    }
+    return quotes, nil
+}
+
+// GetFoldersByUserID retrieves folders for a specific user by ID
+func GetFoldersByUserID(userID string) ([]models.Folder, error) {
+    // Implement logic to fetch folders for the specified user from the database
+    // Example using Gorm
+    var folders []models.Folder
+    result := db.Where("user_id = ?", userID).Find(&folders)
+    if result.Error != nil {
+        return nil, result.Error
+    }
+    return folders, nil
+}
+
+--- File: backend/go.dockerfile ---
+FROM golang:1.18
+
+WORKDIR /app
+
+COPY . .
+
+# Download and install the dependencies:
+RUN go get -d -v ./...
+
+# Build the go app
+RUN go build -o api .
+
+EXPOSE 8000
+
+CMD ["./api"]
+
+--- File: backend/main.go ---
+// main.go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"api/database"
+	"api/routes"
+)
+
+func main() {
+	// Initialize the database
+	database.InitDB()
+
+	// Defer the database closing function
+	defer func() {
+		database.CloseDB()
+	}()
+
+	// Initialize your router and set up routes with middleware
+	router := routes.SetupRouter()
+
+	// Set up server configuration
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000" // default port
+	}
+
+	// Start the server
+	addr := fmt.Sprintf(":%s", port)
+	log.Printf("Server is running on http://localhost%s", addr)
+	if err := http.ListenAndServe(addr, router); err != nil {
+		log.Fatalf("Server error: %v", err)
+	}
+}
+
+
+--- File: backend/main_test.go ---
+// main_test.go
+package main
+
+import (
+    "net/http"
+    "net/http/httptest"
+    "testing"
+    "github.com/gin-gonic/gin"
+    "your-app/controllers"
+)
+
+func setupRouter() *gin.Engine {
+    r := gin.Default()
+
+    // Routes
+    r.GET("/api/quotes/", controllers.GetQuotes)
+    r.GET("/api/quotes/:id", controllers.GetQuoteByID)
+    r.POST("/api/quotes/", controllers.AddQuote)
+    r.PUT("/api/quotes/:id", controllers.UpdateQuote)
+    r.DELETE("/api/quotes/:id", controllers.DeleteQuote)
+
+    r.POST("/api/users/register", controllers.RegisterUser)
+    r.POST("/api/users/login", controllers.LoginUser)
+    r.GET("/api/users/:id", controllers.GetUserByID)
+    r.PUT("/api/users/:id", controllers.UpdateUser)
+    r.DELETE("/api/users/:id", controllers.DeleteUser)
+    r.GET("/api/users/:id/quotes", controllers.GetUserQuotes)
+    r.GET("/api/users/:id/folders", controllers.GetUserFolders)
+
+    r.GET("/api/feedback/:id", controllers.GetFeedbackByID)
+    r.GET("/api/feedback/", controllers.GetAllFeedback)
+    r.POST("/api/feedback/:quoteId", controllers.AddFeedbackForQuote)
+
+    return r
+}
+
+func TestRoutes(t *testing.T) {
+    router := setupRouter()
+
+    testCases := []struct {
+        method string
+        path   string
+        status int
+    }{
+        {method: "GET", path: "/api/quotes/", status: http.StatusOK},
+        {method: "GET", path: "/api/quotes/123", status: http.StatusOK}, // Update with valid quote ID
+        {method: "POST", path: "/api/quotes/", status: http.StatusOK},
+        {method: "PUT", path: "/api/quotes/123", status: http.StatusOK}, // Update with valid quote ID
+        {method: "DELETE", path: "/api/quotes/123", status: http.StatusOK}, // Update with valid quote ID
+
+        {method: "POST", path: "/api/users/register", status: http.StatusOK},
+        {method: "POST", path: "/api/users/login", status: http.StatusOK},
+        {method: "GET", path: "/api/users/123", status: http.StatusOK}, // Update with valid user ID
+        {method: "PUT", path: "/api/users/123", status: http.StatusOK}, // Update with valid user ID
+        {method: "DELETE", path: "/api/users/123", status: http.StatusOK}, // Update with valid user ID
+        {method: "GET", path: "/api/users/123/quotes", status: http.StatusOK}, // Update with valid user ID
+        {method: "GET", path: "/api/users/123/folders", status: http.StatusOK}, // Update with valid user ID
+
+        {method: "GET", path: "/api/feedback/123", status: http.StatusOK}, // Update with valid feedback ID
+        {method: "GET", path: "/api/feedback/", status: http.StatusOK},
+        {method: "POST", path: "/api/feedback/456", status: http.StatusOK}, // Update with valid quote ID
+    }
+
+    for _, tc := range testCases {
+        t.Run(tc.path, func(t *testing.T) {
+            req, err := http.NewRequest(tc.method, tc.path, nil)
+            if err != nil {
+                t.Fatal(err)
+            }
+
+            rr := httptest.NewRecorder()
+
+            router.ServeHTTP(rr, req)
+
+            if rr.Code != tc.status {
+                t.Errorf("expected status %d, got %d", tc.status, rr.Code)
+            }
+        })
+    }
+}
+
+
+--- File: backend/middleware/auth.go ---
+// middleware/authentication.go
+package middleware
+
+import (
+    "github.com/gin-gonic/gin"
+    "net/http"
+    "api/utils"
+)
+
+// AuthMiddleware is a middleware to authenticate users using JWT
+func AuthMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        token, err := c.Cookie("jwt")
+        if err != nil || !utils.VerifyJWT(token) {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+            c.Abort()
+            return
+        }
+
+        c.Next()
+    }
+}
+
+
+--- File: backend/middleware/authenticate.go ---
+// File: middleware/authenticate.go
+
+package middleware
+
+import (
+	"github.com/gin-gonic/gin"
+)
+
+// SetUsernameToContext sets the username in the Gin context
+func SetUsernameToContext(c *gin.Context, username string) {
+	c.Set("username", username)
+}
+
+// SetUserRoleToContext sets the user role in the Gin context
+func SetUserRoleToContext(c *gin.Context, userRole string) {
+	c.Set("user_role", userRole)
+}
+
+// GetUsernameFromContext retrieves the username from the Gin context
+func GetUsernameFromContext(c *gin.Context) string {
+	// Assuming the username is stored in the Gin context under the key "username"
+	username, exists := c.Get("username")
+	if !exists {
+		// Handle the case where the username is not found in the context
+		return ""
+	}
+
+	// Convert the retrieved username to a string (assuming it's a string)
+	if usernameStr, ok := username.(string); ok {
+		return usernameStr
+	}
+
+	// Handle the case where the username is not of the expected type
+	return ""
+}
+
+// GetUserRoleFromContext retrieves the user role from the Gin context
+func GetUserRoleFromContext(c *gin.Context) string {
+	// Assuming the user role is stored in the Gin context under the key "user_role"
+	userRole, exists := c.Get("user_role")
+	if !exists {
+		// Handle the case where the user role is not found in the context
+		return ""
+	}
+
+	// Convert the retrieved user role to a string (assuming it's a string)
+	if userRoleStr, ok := userRole.(string); ok {
+		return userRoleStr
+	}
+
+	// Handle the case where the user role is not of the expected type
+	return ""
+}
+
+
+--- File: backend/middleware/authorize.go ---
+// middleware/authorize.go
+
+package middleware
+
+import (
+	"net/http"
+	"github.com/gin-gonic/gin"
+	"api/models"
+	"fmt"
+)
+
+// getUserRoleFromContext retrieves the user role from the Gin context
+func getUserRoleFromContext(c *gin.Context) string {
+	// Implement your logic to get the user role from the context
+	// For example, assuming the role is stored under the key "user_role"
+	userRole, exists := c.Get("user_role")
+	if !exists {
+		return ""
+	}
+
+	// Convert to string if it's of the expected type
+	if userRoleStr, ok := userRole.(string); ok {
+		return userRoleStr
+	}
+
+	return ""
+}
+
+// Authorize ensures that the authenticated user has the necessary permissions
+func Authorize() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Example: Fetch the user role from the authentication context
+		userRole := getUserRoleFromContext(c)
+
+		// Check if the user has the necessary permissions (adjust based on your authorization logic)
+		if userRole != models.AdminRole {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
+			c.Abort()
+			return
+		}
+
+		// Continue to the next middleware or request handler
+		c.Next()
+	}
+}
+
+func isAuthenticated(c *gin.Context) bool {
+	fmt.Printf("Wlecome to isAuthenticated")
+    // Check if the user is authenticated (e.g., verify token or session)
+    // Return true if authenticated, false otherwise
+    // Implement your own authentication logic
+    return true
+}
+
+
+--- File: backend/middleware/db.go ---
+// middleware/db.go
+package middleware
+
+import (
+    "github.com/gin-gonic/gin"
+    "gorm.io/gorm"
+    "api/database"
+)
+
+// DatabaseMiddleware initializes the database connection and sets it in the context
+func DatabaseMiddleware(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        database.SetDB(db)
+        defer database.CloseDB()
+        c.Next()
+    }
+}
+
+
+--- File: backend/middleware/error_handling.go ---
+// middleware/error_handling.go
+
+package middleware
+
+import (
+	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+)
+
+// ErrorHandlerMiddleware handles errors and returns a standardized response
+func ErrorHandlerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Printf("[Recovery] %s\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				c.Abort()
+			}
+		}()
+
+		c.Next()
+	}
+}
+
+
+--- File: backend/middleware/logging.go ---
+// middleware/logging.go
+
+package middleware
+
+import (
+	"github.com/gin-gonic/gin"
+	"log"
+)
+
+// getUsernameFromContext retrieves the username from the Gin context
+func getUsernameFromContext(c *gin.Context) string {
+	// Assuming the username is stored in the Gin context under the key "username"
+	username, exists := c.Get("username")
+	if !exists {
+		return ""
+	}
+
+	// Convert to string if it's of the expected type
+	if usernameStr, ok := username.(string); ok {
+		return usernameStr
+	}
+
+	return ""
+}
+
+// LogFeedbackAction logs information about feedback-related actions
+func LogFeedbackAction() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Log relevant information (user, action type, etc.)
+		log.Printf("User %s performed %s action on feedback ID %s",
+			getUsernameFromContext(c),
+			c.Request.Method,
+			c.Param("id"),
+		)
+
+		// Continue to the next middleware or request handler
+		c.Next()
+	}
+}
+
+
+
+
+--- File: backend/middleware/rate_limiting.go ---
+// middleware/rate_limiting.go
+
+package middleware
+
+import (
+	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
+	"net/http"
+)
+
+// RateLimiterMiddleware enforces rate limiting for incoming requests
+func RateLimiterMiddleware(limiter *rate.Limiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if limiter.Allow() {
+			c.Next()
+		} else {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
+			c.Abort()
+		}
+	}
+}
+
+
+--- File: backend/middleware/request_logging.go ---
+// middleware/request_logging.go
+
+package middleware
+
+import (
+	"github.com/gin-gonic/gin"
+	"log"
+)
+
+// LogRequest logs information about incoming requests
+func LogRequest() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.Printf("Received %s request for %s from %s",
+			c.Request.Method,
+			c.Request.URL.Path,
+			c.ClientIP(),
+		)
+
+		// Continue to the next middleware or request handler
+		c.Next()
+	}
+}
+
+
+--- File: backend/middleware/security_headers.go ---
+// middleware/security_headers.go
+
+package middleware
+
+import (
+	"github.com/gin-gonic/gin"
+)
+
+// SecurityHeadersMiddleware sets security headers in the response
+func SecurityHeadersMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Content-Security-Policy", "default-src 'self'")
+		c.Writer.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+		// Add more security headers as needed
+
+		c.Next()
+	}
+}
+
+
+--- File: backend/middleware/tracing.go ---
+// middleware/tracing.go
+
+package middleware
+
+import (
+	"github.com/gin-gonic/gin"
+	"log"
+)
+
+// TracingMiddleware traces requests and logs trace information
+func TracingMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Implement tracing logic here (e.g., integrate with a distributed tracing system)
+		log.Printf("Tracing request: %s %s", c.Request.Method, c.Request.URL.Path)
+
+		c.Next()
+	}
+}
+
+
+--- File: backend/migrations/001_create_users_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.User{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.User{})
+}
+
+
+--- File: backend/migrations/002_create_categories_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.Category{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.Category{})
+}
+
+
+--- File: backend/migrations/003_create_tags_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.Tag{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.Tag{})
+}
+
+
+--- File: backend/migrations/004_create_quotes_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.Quote{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.Quote{})
+}
+
+
+--- File: backend/migrations/005_create_feedback_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.Feedback{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.Feedback{})
+}
+
+
+--- File: backend/migrations/006_create_literary_works_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.LiteraryWork{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.LiteraryWork{})
+}
+
+
+--- File: backend/migrations/007_create_folders_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.Folder{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.Folder{})
+}
+
+
+--- File: backend/migrations/008_create_likes_table.go ---
+// migrations/001_create_quotes_table.go
+package migrations
+
+import (
+	"gorm.io/gorm"
+	"api/models" // Import your models package
+)
+
+func Up(db *gorm.DB) error {
+	return db.AutoMigrate(&models.Like{})
+}
+
+func Down(db *gorm.DB) error {
+	return db.Migrator().DropTable(&models.Like{})
+}
+
+
+--- File: backend/models/category.go ---
+package models
+
+import "time"
+
+
+
+// Category Entity
+type Category struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Name      string    `json:"name" gorm:"unique;not null"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+--- File: backend/models/feedback.go ---
+package models
+
+import "time"
+
+// Feedback Entity
+type Feedback struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Comment   string    `json:"comment" gorm:"not null"`
+	Rating    int       `json:"rating" gorm:"not null;check:(rating >= 1) AND (rating <= 5)"`
+	QuoteID   uint      `json:"quoteId" gorm:"not null"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+
+--- File: backend/models/folder.go ---
+package models
+
+import "time"
+
+// Folder Entity
+type Folder struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Name      string    `json:"name" gorm:"not null"`
+	UserID    uint      `json:"userId" gorm:"not null"`
+	Quotes    []Quote   `json:"quotes" gorm:"many2many:quote_folders;"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+
+--- File: backend/models/like.go ---
+package models
+
+import "time"
+
+// Like Entity
+type Like struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	UserID    uint      `json:"userId" gorm:"not null"`
+	QuoteID   uint      `json:"quoteId" gorm:"not null"`
+	IsLike    bool      `json:"isLike" gorm:"not null"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+--- File: backend/models/lw.go ---
+package models
+
+import "time"
+
+// LiteraryWork Entity
+type LiteraryWork struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Title     string    `json:"title" gorm:"not null"`
+	Author    string    `json:"author"`
+	Quotes    []Quote   `json:"quotes" gorm:"foreignKey:WorkID"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+--- File: backend/models/models.go ---
+package models
+
+import (
+	"gorm.io/gorm"
+)
+
+
+// SetDB sets the Gorm DB instance for the models package
+func SetDB(database *gorm.DB) {
+	DB = database
+}
+
+
+--- File: backend/models/quote.go ---
+package models
+
+import (
+	"time"
+)
+
+// Quote Entity
+type Quote struct {
+    ID        uint      `json:"id" gorm:"primaryKey"`
+    Text      string    `json:"text" gorm:"not null"`
+    Author    string    `json:"author" gorm:"not null"`
+    Category  string    `json:"category"`
+    Tags      []string  `json:"tags" gorm:"-"`
+    UserID    uint      `json:"userId" gorm:"index"`
+    WorkID    uint      `json:"workId" gorm:"index"`
+    Feedback  []Feedback `json:"feedback" gorm:"foreignKey:QuoteID"`
+    CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+    UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+// GetQuotes returns the quotes associated with a Quote entity
+func (q Quote) GetQuotes() []Quote {
+	return []Quote{q}
+}
+
+
+
+--- File: backend/models/tag.go ---
+package models
+
+import "time"
+
+// Tag Entity
+type Tag struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Name      string    `json:"name" gorm:"unique;not null"`
+	Quotes    []Quote   `json:"quotes" gorm:"many2many:quote_tags;"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+--- File: backend/models/user.go ---
+package models
+
+import (
+	"gorm.io/gorm"
+	"time"
+    "golang.org/x/crypto/bcrypt" 
+)
+
+var DB *gorm.DB // Package-level variable to hold the Gorm DB instance
+
+const AdminRole = "admin"
+
+// // SetDB sets the Gorm DB instance for the user model
+// func SetDB(database *gorm.DB) {
+//     DB = database
+// }
+
+
+
+// User represents a user in the system
+type User struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Username  string    `json:"username" gorm:"unique;not null;index"` // Added indexing for better query performance
+	Password  string    `json:"-" gorm:"not null"`
+	Quotes []Quote `json:"quotes" gorm:"foreignKey:user_id"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+// BeforeCreate hooks into the GORM lifecycle to hash the user's password before saving
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hashedPassword)
+	return nil
+}
+
+// CheckPassword verifies if the provided password matches the hashed password
+func (u *User) CheckPassword(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+}
+
+
+
+
+
+--- File: backend/routes/routes.go ---
+// routes/routes.go
+
+package routes
+
+import (
+    "github.com/gin-gonic/gin"
+    "api/controllers"
+    "api/middleware"
+    "golang.org/x/time/rate"
+)
+
+func SetupRouter() *gin.Engine {
+    r := gin.Default()
+
+    // Apply tracing middleware to all routes
+    r.Use(middleware.TracingMiddleware())
+
+    // Apply security headers middleware to all routes
+    r.Use(middleware.SecurityHeadersMiddleware())
+
+    // Apply request logging middleware to all routes
+    r.Use(middleware.LogRequest())
+
+    // Create a rate limiter (example: 10 requests per second)
+    limiter := rate.NewLimiter(rate.Limit(20), 1)
+
+    // Apply rate limiting middleware to all routes
+    r.Use(middleware.RateLimiterMiddleware(limiter))
+
+    // Apply log feedback action middleware to specific routes
+    r.Use(middleware.LogFeedbackAction())
+    
+    // Apply error handling middleware to all routes
+    r.Use(middleware.ErrorHandlerMiddleware())
+
+    // Public routes (no authentication required)
+    publicGroup := r.Group("/api/public")
+    {
+        publicGroup.POST("/users/register", controllers.RegisterUser)
+        publicGroup.POST("/users/login", controllers.LoginUser)
+        // Add other public routes as needed
+    }
+
+    // Protected routes (authentication required)
+    protectedGroup := r.Group("/api")
+    protectedGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware to all routes in this group
+    protectedGroup.Use(middleware.TracingMiddleware()) // Apply tracing middleware to all routes in this group
+    protectedGroup.Use(middleware.SecurityHeadersMiddleware()) // Apply security headers middleware to all routes in this group
+    protectedGroup.Use(middleware.LogRequest()) // Apply request logging middleware to all routes in this group
+    //protectedGroup.Use(middleware.RateLimiterMiddleware(limiter)) // Apply rate limiting middleware to all routes in this group
+    protectedGroup.Use(middleware.LogFeedbackAction()) // Apply log feedback action middleware to all routes in this group
+    protectedGroup.Use(middleware.ErrorHandlerMiddleware()) // Apply error handling middleware to all routes in this group
+    {
+        // Quotes endpoints
+        quoteGroup := protectedGroup.Group("/quotes")
+        {
+            quoteGroup.GET("/", controllers.GetQuotes)
+            quoteGroup.GET("/:id", controllers.GetQuoteByID)
+            quoteGroup.POST("/", controllers.AddQuote)
+            quoteGroup.PUT("/:id", controllers.UpdateQuote)
+            quoteGroup.DELETE("/:id", controllers.DeleteQuote)
+        }
+
+        // User routes
+        userGroup := protectedGroup.Group("/users")
+        {
+            userGroup.GET("/:id", controllers.GetUserByID)
+            userGroup.PUT("/:id", controllers.UpdateUser)
+            userGroup.DELETE("/:id", controllers.DeleteUser)
+            // Add other user-related routes as needed
+
+            // Example: Get user's quotes
+            userGroup.GET("/:id/quotes", controllers.GetUserQuotes)
+
+            // Example: Get user's folders
+            userGroup.GET("/:id/folders", controllers.GetUserFolders)
+        }
+
+        // Feedback endpoints
+        feedbackGroup := protectedGroup.Group("/feedback")
+        {
+            feedbackGroup.GET("/:id", controllers.GetFeedbackByID)
+            feedbackGroup.GET("/", controllers.GetAllFeedback)
+            feedbackGroup.POST("/:quoteId", controllers.AddFeedbackForQuote)
+            // Add other feedback-related routes as needed
+        }
+
+        // Other protected endpoints go here...
+    }
+
+    return r
+}
+
+
+--- File: backend/utils/jwt.go ---
+// utils/jwt.go
+package utils
+
+import (
+    "github.com/dgrijalva/jwt-go"
+    "time"
+)
+
+var jwtSecret = []byte("your-secret-key") // Replace with a secure secret key
+
+// GenerateJWT creates a new JWT
+func GenerateJWT(username string) (string, error) {
+    claims := jwt.MapClaims{
+        "username": username,
+        "exp":      time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+        "iat":      time.Now().Unix(),
+    }
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    signedToken, err := token.SignedString(jwtSecret)
+    if err != nil {
+        return "", err
+    }
+
+    return signedToken, nil
+}
+
+// VerifyJWT verifies the authenticity of a JWT
+func VerifyJWT(tokenString string) bool {
+    token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+        return jwtSecret, nil
+    })
+
+    return err == nil && token.Valid
+}
+
+
+--- File: backend/utils/utils.go ---
+
+package utils
+
+import (
+    "github.com/gin-gonic/gin"
+	"strconv"
+)
+
+// GetUserIDFromContext retrieves the user ID from the Gin context
+func GetUserIDFromContext(c *gin.Context) string {
+    // Assuming the user ID is stored in the Gin context under the key "UserID"
+    userID, exists := c.Get("UserID")
+    if !exists {
+        // Handle the case where the user ID is not found in the context
+        return ""
+    }
+
+    // Convert the retrieved user ID to a string (assuming it's a string)
+    if userIDStr, ok := userID.(string); ok {
+        return userIDStr
+    }
+
+    // Handle the case where the user ID is not of the expected type
+    return ""
+}
+
+// ConvertUserIDToUint converts a user ID from string to uint
+func ConvertUserIDToUint(userID string) (uint, error) {
+	userIDUint, err := strconv.ParseUint(userID, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(userIDUint), nil
+}
+
+
+--- File: compose.yaml ---
+services:
+  nextapp:
+    container_name: nextapp
+    image: nextapp:1.0.0
+    build:
+      context: ./frontend
+      dockerfile: next.dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - goapp
+  goapp:
+    container_name: goapp
+    image: goapp:1.0.0
+    build:
+      context: ./backend
+      dockerfile: go.dockerfile
+    environment:
+      DATABASE_URL: 'postgres://postgres:postgres@ladb:5432/qmdb?sslmode=disable'
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: qmdb
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+    networks:
+      - default
+  db:
+    container_name: ladb
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: qmdb
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - default
+
+volumes:
+  pgdata: {}
+
+networks:
+  default:
+    driver: bridge

@@ -9,81 +9,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        options: --name=ladb
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: qmdb
-
-      goapp:
-        image: gedeonkoumako/goapp:1.0.0
-        ports:
-          - 8000:8000
-        options: --name=goapp
-        env:
-          DATABASE_URL: postgres://postgres:postgres@ladb:5432/qmdb?sslmode=disable
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: qmdb
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Wait for Services to Start
-        run: sleep 30
+    - name: Set up Docker
+      uses: actions/setup-docker@v2
+      with:
+        dockerfile: Dockerfile  # Specify the path to your Dockerfile
 
-      - name: Install jq
-        run: sudo apt-get install jq
+    - name: Build Docker image
+      run: docker build -t goapp .
 
-      - name: User Registration and Login
-        run: |
-          # Register a new user
-          curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/register
+    - name: Run Docker container
+      run: docker run -d --name goapp -p 8000:8000 goapp
 
-          # Login with the registered user and retrieve the JWT token
-          JWT_TOKEN=$(curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "testpassword"}' http://localhost:8000/api/public/users/login | jq -r '.token')
+    - name: Wait for container to start
+      run: sleep 10
 
-      - name: Create Literary Work
-        run: |
-          # Create a new literary work (authenticated)
-          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"title": "The Great Gatsby", "author": "F. Scott Fitzgerald"}' http://localhost:8000/api/literaryworks
+    - name: Run API Tests
+      run: |
+        bash api_tests.sh
 
-          # Get the list of literary works (authenticated)
-          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/literaryworks
-
-      - name: Add Quotes to Literary Work
-        run: |
-          # Add quotes to the literary work (authenticated)
-          QUOTE_ID=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"text": "Quote 1", "author": "Author 1"}' http://localhost:8000/api/quotes | jq -r '.id')
-
-          # Get the added quote by ID (authenticated)
-          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/quotes/$QUOTE_ID
-
-          # Add another quote to the literary work (authenticated)
-          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"text": "Quote 2", "author": "Author 2"}' http://localhost:8000/api/quotes
-
-          # Get the list of quotes in the literary work (authenticated)
-          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/literaryworks/1/quotes
-
-      - name: Provide Feedback for Quotes
-        run: |
-          # Provide feedback for a quote (authenticated)
-          FEEDBACK_ID=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"rating": 5, "comment": "Great quote!"}' http://localhost:8000/api/feedback/$QUOTE_ID | jq -r '.id')
-
-          # Get the added feedback by ID (authenticated)
-          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/$FEEDBACK_ID
-
-          # Update the feedback (authenticated)
-          curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d '{"rating": 4, "comment": "Updated feedback"}' http://localhost:8000/api/feedback/$FEEDBACK_ID
-
-          # Get the updated feedback by ID (authenticated)
-          curl -X GET -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/$FEEDBACK_ID
-
-          # Delete the feedback (authenticated)
-          curl -X DELETE -H "Authorization: Bearer $JWT_TOKEN" http://localhost:8000/api/feedback/$FEEDBACK_ID
+    - name: Stop Docker container
+      run: docker stop goapp

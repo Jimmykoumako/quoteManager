@@ -4,6 +4,7 @@ package utils
 import (
 	"github.com/dgrijalva/jwt-go"
 	"time"
+	"log"
 )
 
 var jwtSecret = []byte("your-secret-key") // Replace with a secure secret key
